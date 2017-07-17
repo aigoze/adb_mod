@@ -35,7 +35,7 @@
 #  endif
 #else
 #  include <cutils/android_reboot.h>
-#  include <cutils/properties.h>
+//#  include <cutils/properties.h>
 #endif
 
 typedef struct stinfo stinfo;
@@ -56,6 +56,7 @@ void *service_bootstrap_func(void *x)
 }
 
 #if !ADB_HOST
+#define PROPERTY_VALUE_MAX 92
 
 void restart_root_service(int fd, void *cookie)
 {

@@ -328,7 +328,8 @@ static __inline__ int  unix_open(const char*  path, int options,...)
 {
     if ((options & O_CREAT) == 0)
     {
-        return  TEMP_FAILURE_RETRY( open(path, options) );
+        //return  TEMP_FAILURE_RETRY( open(path, options) );//HJD
+        return open(path, options);
     }
     else
     {
@@ -337,74 +338,80 @@ static __inline__ int  unix_open(const char*  path, int options,...)
         va_start( args, options );
         mode = va_arg( args, int );
         va_end( args );
-        return TEMP_FAILURE_RETRY( open( path, options, mode ) );
+        //return TEMP_FAILURE_RETRY( open( path, options, mode ) );//HJD
+        return open( path, options, mode );
     }
 }
 
 static __inline__ int  adb_open_mode( const char*  pathname, int  options, int  mode )
 {
-    return TEMP_FAILURE_RETRY( open( pathname, options, mode ) );
+    //return TEMP_FAILURE_RETRY( open( pathname, options, mode ) );//HJD
+    return open( pathname, options, mode );
 }
 
 
 static __inline__ int  adb_open( const char*  pathname, int  options )
 {
-    int  fd = TEMP_FAILURE_RETRY( open( pathname, options ) );
+    //int  fd = TEMP_FAILURE_RETRY( open( pathname, options ) );//HJD
+    int  fd = open( pathname, options );
     if (fd < 0)
         return -1;
     close_on_exec( fd );
     return fd;
 }
 #undef   open
-#define  open    ___xxx_open
+//HJD//#define  open    ___xxx_open
 
 static __inline__ int  adb_shutdown(int fd)
 {
     return shutdown(fd, SHUT_RDWR);
 }
 #undef   shutdown
-#define  shutdown   ____xxx_shutdown
+//HJD//#define  shutdown   ____xxx_shutdown
 
 static __inline__ int  adb_close(int fd)
 {
     return close(fd);
 }
 #undef   close
-#define  close   ____xxx_close
+//HJD//#define  close   ____xxx_close
 
 
 static __inline__  int  adb_read(int  fd, void*  buf, size_t  len)
 {
-    return TEMP_FAILURE_RETRY( read( fd, buf, len ) );
+    //return TEMP_FAILURE_RETRY( read( fd, buf, len ) );//HJD
+    return read( fd, buf, len );
 }
 
 #undef   read
-#define  read  ___xxx_read
+//HJD//#define  read  ___xxx_read
 
 static __inline__  int  adb_write(int  fd, const void*  buf, size_t  len)
 {
-    return TEMP_FAILURE_RETRY( write( fd, buf, len ) );
+    //return TEMP_FAILURE_RETRY( write( fd, buf, len ) );//HJD
+    return write( fd, buf, len );
 }
 #undef   write
-#define  write  ___xxx_write
+//HJD//#define  write  ___xxx_write
 
 static __inline__ int   adb_lseek(int  fd, int  pos, int  where)
 {
     return lseek(fd, pos, where);
 }
 #undef   lseek
-#define  lseek   ___xxx_lseek
+//HJD//#define  lseek   ___xxx_lseek
 
 static __inline__  int    adb_unlink(const char*  path)
 {
     return  unlink(path);
 }
 #undef  unlink
-#define unlink  ___xxx_unlink
+//HJD//#define unlink  ___xxx_unlink
 
 static __inline__  int  adb_creat(const char*  path, int  mode)
 {
-    int  fd = TEMP_FAILURE_RETRY( creat( path, mode ) );
+    //int  fd = TEMP_FAILURE_RETRY( creat( path, mode ) );//HJD
+    int  fd = creat( path, mode );
 
     if ( fd < 0 )
         return -1;
@@ -413,13 +420,14 @@ static __inline__  int  adb_creat(const char*  path, int  mode)
     return fd;
 }
 #undef   creat
-#define  creat  ___xxx_creat
+//HJD//#define  creat  ___xxx_creat
 
 static __inline__ int  adb_socket_accept(int  serverfd, struct sockaddr*  addr, socklen_t  *addrlen)
 {
     int fd;
 
-    fd = TEMP_FAILURE_RETRY( accept( serverfd, addr, addrlen ) );
+    //fd = TEMP_FAILURE_RETRY( accept( serverfd, addr, addrlen ) );//HJD
+    fd = accept( serverfd, addr, addrlen );
     if (fd >= 0)
         close_on_exec(fd);
 
@@ -427,7 +435,7 @@ static __inline__ int  adb_socket_accept(int  serverfd, struct sockaddr*  addr, 
 }
 
 #undef   accept
-#define  accept  ___xxx_accept
+//HJD//#define  accept  ___xxx_accept
 
 #define  unix_read   adb_read
 #define  unix_write  adb_write
@@ -479,7 +487,7 @@ static __inline__ int  adb_socketpair( int  sv[2] )
 }
 
 #undef   socketpair
-#define  socketpair   ___xxx_socketpair
+//HJD//#define  socketpair   ___xxx_socketpair
 
 static __inline__ void  adb_sleep_ms( int  mseconds )
 {
@@ -491,7 +499,7 @@ static __inline__ int  adb_mkdir(const char*  path, int mode)
     return mkdir(path, mode);
 }
 #undef   mkdir
-#define  mkdir  ___xxx_mkdir
+//HJD//#define  mkdir  ___xxx_mkdir
 
 static __inline__ void  adb_sysdeps_init(void)
 {
@@ -517,7 +525,7 @@ static __inline__ char*  adb_strtok_r(char *str, const char *delim, char **savep
     return strtok_r(str, delim, saveptr);
 }
 #undef   strtok_r
-#define  strtok_r  ___xxx_strtok_r
+//HJD//#define  strtok_r  ___xxx_strtok_r
 
 #endif /* !_WIN32 */
 

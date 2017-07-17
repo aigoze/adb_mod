@@ -173,7 +173,7 @@ void framebuffer_service(int fd, void *cookie)
     }
 
 done:
-    TEMP_FAILURE_RETRY(waitpid(pid, NULL, 0));
+    //TEMP_FAILURE_RETRY(waitpid(pid, NULL, 0));//HJD
 
     close(fds[0]);
     close(fds[1]);

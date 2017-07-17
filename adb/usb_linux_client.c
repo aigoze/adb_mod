@@ -161,12 +161,16 @@ static void *usb_adb_open_thread(void *x)
         D("[ usb_thread - opening device ]\n");
         do {
             /* XXX use inotify? */
-            fd = unix_open("/dev/android_adb", O_RDWR);
-            if (fd < 0) {
+	    D("[ usb_thread - waiting ]\n");
+            //fd = unix_open("/dev/android_adb", O_RDWR);//HJD
+            fd = open("/dev/android_adb", O_RDWR);
+            D("[ usb_thread - fd=%d error=%d, err_str = %s ]\n", fd, errno, strerror(errno));
+	    if (fd < 0) {
                 // to support older kernels
                 fd = unix_open("/dev/android", O_RDWR);
             }
             if (fd < 0) {
+		D("[ usb_thread - sleep ]\n");
                 adb_sleep_ms(1000);
             }
         } while (fd < 0);

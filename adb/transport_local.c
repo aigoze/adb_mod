@@ -22,7 +22,7 @@
 #include "sysdeps.h"
 #include <sys/types.h>
 #if !ADB_HOST
-#include <cutils/properties.h>
+//#include <cutils/properties.h>
 #endif
 
 #define  TRACE_TAG  TRACE_TRANSPORT
@@ -198,7 +198,7 @@ static void *server_socket_thread(void * arg)
 #undef write
 #define open    adb_open
 #define write   adb_write
-#include <hardware/qemu_pipe.h>
+//#include <hardware/qemu_pipe.h>
 #undef open
 #undef write
 #define open    ___xxx_open
@@ -252,7 +252,7 @@ static const char _ok_resp[]    = "ok";
     snprintf(con_name, sizeof(con_name), "qemud:adb:%d", port);
 
     /* Connect to the adb QEMUD service. */
-    fd = qemu_pipe_open(con_name);
+    //fd = qemu_pipe_open(con_name);//HJD
     if (fd < 0) {
         /* This could be an older version of the emulator, that doesn't
          * implement adb QEMUD service. Fall back to the old TCP way. */
@@ -284,7 +284,7 @@ static const char _ok_resp[]    = "ok";
             }
 
             /* Prepare for accepting of the next ADB host connection. */
-            fd = qemu_pipe_open(con_name);
+            //fd = qemu_pipe_open(con_name);//HJD
             if (fd < 0) {
                 D("adb service become unavailable.\n");
                 return 0;
@@ -299,6 +299,7 @@ static const char _ok_resp[]    = "ok";
 }
 #endif  // !ADB_HOST
 
+#define PROPERTY_VALUE_MAX 92
 void local_init(int port)
 {
     adb_thread_t thr;
@@ -313,7 +314,7 @@ void local_init(int port)
         /* For the adbd daemon in the system image we need to distinguish
          * between the device, and the emulator. */
         char is_qemu[PROPERTY_VALUE_MAX];
-        property_get("ro.kernel.qemu", is_qemu, "");
+        //property_get("ro.kernel.qemu", is_qemu, "");//HJD
         if (!strcmp(is_qemu, "1")) {
             /* Running inside the emulator: use QEMUD pipe as the transport. */
             func = qemu_socket_thread;

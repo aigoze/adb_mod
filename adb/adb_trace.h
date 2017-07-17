@@ -18,7 +18,24 @@
 #define __ADB_TRACE_H
 
 #if !ADB_HOST
-#include <android/log.h>
+//#include <android/log.h>
+#ifndef __ADB_LOG_HJD
+#define __ADB_LOG_HJD
+typedef enum android_LogPriority {
+    ANDROID_LOG_UNKNOWN = 0,
+    ANDROID_LOG_DEFAULT,    /* only for SetMinPriority() */
+    ANDROID_LOG_VERBOSE,
+    ANDROID_LOG_DEBUG,
+    ANDROID_LOG_INFO,
+    ANDROID_LOG_WARN,
+    ANDROID_LOG_ERROR,
+    ANDROID_LOG_FATAL,
+    ANDROID_LOG_SILENT,     /* only for SetMinPriority(); must be last */
+} android_LogPriority;
+
+int __android_log_print(int prio, const char *tag,  const char *fmt, ...);
+#endif
+
 #endif
 
 /* define ADB_TRACE to 1 to enable tracing support, or 0 to disable it */
@@ -64,8 +81,8 @@ extern int     adb_trace_mask;
 extern unsigned char    adb_trace_output_count;
 void    adb_trace_init(void);
 
-#  define ADB_TRACING  ((adb_trace_mask & (1 << TRACE_TAG)) != 0)
-
+//#  define ADB_TRACING  ((adb_trace_mask & (1 << TRACE_TAG)) != 0)
+#  define ADB_TRACING  1    //HJD
 /* you must define TRACE_TAG before using this macro */
 #if ADB_HOST
 #  define  D(...)                                      \

@@ -24,7 +24,7 @@
 #include "sysdeps.h"
 
 #if !ADB_HOST
-#include <cutils/properties.h>
+//#include <cutils/properties.h>
 #endif
 
 #define  TRACE_TAG  TRACE_SOCKETS
@@ -428,6 +428,7 @@ asocket *create_local_socket(int fd)
     return s;
 }
 
+#define PROPERTY_VALUE_MAX 92
 asocket *create_local_service_socket(const char *name)
 {
     asocket *s;

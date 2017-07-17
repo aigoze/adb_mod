@@ -34,14 +34,28 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 #if !ADB_HOST
-#include <cutils/properties.h>
+//#include <cutils/properties.h>
 #include <private/android_filesystem_config.h>
-#include <sys/capability.h>
+//#include <sys/capability.h>
 #include <sys/mount.h>
 #include <sys/prctl.h>
 #include <getopt.h>
-#include <selinux/selinux.h>
+//#include <selinux/selinux.h>
 #endif
+
+//HJD
+#define LOG_BUF_SIZE    1024
+int __android_log_print(int prio, const char *tag,  const char *fmt, ...)
+{
+    va_list ap;
+    char buf[LOG_BUF_SIZE];
+
+    va_start(ap, fmt);
+    vsnprintf(buf, LOG_BUF_SIZE, fmt, ap);
+    va_end(ap);
+    printf("[HJDlog]:%s\n",buf);
+  return 0;
+};
 
 #if ADB_TRACE
 ADB_MUTEX_DEFINE( D_lock );
@@ -161,7 +175,7 @@ void  adb_trace_init(void)
 #undef write
 #define open    adb_open
 #define write   adb_write
-#include <hardware/qemu_pipe.h>
+//#include <hardware/qemu_pipe.h>
 #undef open
 #undef write
 #define open    ___xxx_open
@@ -286,6 +300,7 @@ static void send_close(unsigned local, unsigned remote, atransport *t)
     send_packet(p, t);
 }
 
+#define PROPERTY_VALUE_MAX 92
 static size_t fill_connect_data(char *buf, size_t bufsize)
 {
 #if ADB_HOST
@@ -1298,7 +1313,6 @@ int adb_main(int is_daemon, int server_port)
 #if !ADB_HOST
     int port;
     char value[PROPERTY_VALUE_MAX];
-
     umask(000);
 #endif
 
@@ -1309,7 +1323,6 @@ int adb_main(int is_daemon, int server_port)
     // No SIGCHLD. Let the service subproc handle its children.
     signal(SIGPIPE, SIG_IGN);
 #endif
-
     init_transport_registration();
 
 #if ADB_HOST
@@ -1332,7 +1345,6 @@ int adb_main(int is_daemon, int server_port)
     auth_enabled = !strcmp(value, "1");
     if (auth_enabled)
         adb_auth_init();
-
     // Our external storage path may be different than apps, since
     // we aren't able to bind mount after dropping root.
     const char* adb_external_storage = getenv("ADB_EXTERNAL_STORAGE");
@@ -1376,18 +1388,18 @@ int adb_main(int is_daemon, int server_port)
         D("Local port disabled\n");
     } else {
         char local_name[30];
-        if ((root_seclabel != NULL) && (is_selinux_enabled() > 0)) {
+        //HJD//if ((root_seclabel != NULL) && (is_selinux_enabled() > 0)) {
+        if ((root_seclabel != NULL) ) {
             // b/12587913: fix setcon to allow const pointers
-            if (setcon((char *)root_seclabel) < 0) {
-                exit(1);
-            }
+            //HJD//if (setcon((char *)root_seclabel) < 0) {
+            //    exit(1);
+            //}
         }
         build_local_name(local_name, sizeof(local_name), server_port);
         if(install_listener(local_name, "*smartsocket*", NULL, 0)) {
             exit(1);
         }
     }
-
     int usb = 0;
     if (access(USB_ADB_PATH, F_OK) == 0 || access(USB_FFS_ADB_EP0, F_OK) == 0) {
         // listen on USB
@@ -1428,7 +1440,7 @@ int adb_main(int is_daemon, int server_port)
         start_logging();
     }
     D("Event loop starting\n");
-
+    printf("Event loop starting\n");//HJD
     fdevent_loop();
 
     usb_cleanup();
@@ -1692,7 +1704,7 @@ int main(int argc, char **argv)
 #else
     /* If adbd runs inside the emulator this will enable adb tracing via
      * adb-debug qemud service in the emulator. */
-    adb_qemu_trace_init();
+    //adb_qemu_trace_init();//HJD
     while(1) {
         int c;
         int option_index = 0;

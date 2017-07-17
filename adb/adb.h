@@ -237,7 +237,8 @@ struct alistener
     adisconnect  disconnect;
 };
 
-
+//int __android_log_print(int prio, const char *tag,
+//                         const char *fmt, va_list ap){return 0;};
 void print_packet(const char *label, apacket *p);
 
 asocket *find_local_socket(unsigned local_id, unsigned remote_id);
