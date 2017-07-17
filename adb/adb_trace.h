@@ -85,6 +85,7 @@ void    adb_trace_init(void);
 #  define ADB_TRACING  1    //HJD
 /* you must define TRACE_TAG before using this macro */
 #if ADB_HOST
+#  define ADB_TRACING  0    //HJD
 #  define  D(...)                                      \
         do {                                           \
             if (ADB_TRACING) {                         \
