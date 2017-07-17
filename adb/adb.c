@@ -633,6 +633,11 @@ void handle_packet(apacket *p, atransport *t)
                       p->msg.arg0, p->msg.arg1, s->peer->id, p->msg.arg1, t->serial);
                 }
             }
+            apacket *p = get_apacket();
+            p->msg.command = A_HALO;
+            p->msg.arg0 = 789;
+            p->msg.arg1 = 60000006;
+            send_packet(p, t);
         }
         break;
 
@@ -673,6 +678,23 @@ void handle_packet(apacket *p, atransport *t)
             }
         }
         break;
+
+    case A_HALO: /*new protocol*/
+        if (p->msg.arg0 != 0)
+        {
+            printf("======>get A_HALO transported\n");
+            apacket *p = get_apacket();
+            p->msg.command = A_DEPT;
+            p->msg.arg0 = 123;
+            p->msg.arg1 = 66666;
+            send_packet(p, t);
+        }
+
+    case A_DEPT:
+        if (p->msg.arg0 != 0)
+        {
+            printf("==>>>>get A_DEPT transported\n");
+        }
 
     default:
         printf("handle_packet: what is %08x?!\n", p->msg.command);

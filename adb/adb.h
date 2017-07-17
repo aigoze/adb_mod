@@ -31,6 +31,7 @@
 #define A_CLSE 0x45534c43
 #define A_WRTE 0x45545257
 #define A_AUTH 0x48545541
+#define A_HALO 0x20051003
 
 #define A_VERSION 0x01000000        // ADB protocol version
 
