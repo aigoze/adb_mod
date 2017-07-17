@@ -1693,7 +1693,7 @@ int handle_host_request(char *service, transport_type ttype, char* serial, int r
       return ret - 1;
     return -1;
 }
-
+//test commit for development
 int main(int argc, char **argv)
 {
 #if ADB_HOST
