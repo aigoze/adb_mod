@@ -81,8 +81,11 @@ extern int     adb_trace_mask;
 extern unsigned char    adb_trace_output_count;
 void    adb_trace_init(void);
 
+#if ADB_HOST
 #  define ADB_TRACING  ((adb_trace_mask & (1 << TRACE_TAG)) != 0)
-//#  define ADB_TRACING  1    //HJD
+#else
+#  define ADB_TRACING  1    //HJD
+#endif
 /* you must define TRACE_TAG before using this macro */
 #if ADB_HOST
 #  define  D(...)                                      \
