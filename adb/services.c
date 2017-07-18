@@ -303,7 +303,8 @@ static int create_subproc_raw(const char *cmd, const char *arg0, const char *arg
 #if ADB_HOST
 #define SHELL_COMMAND "/bin/sh"
 #else
-#define SHELL_COMMAND "/system/bin/sh"
+//#define SHELL_COMMAND "/system/bin/sh"
+#define SHELL_COMMAND "/mnt/UDISK/hello"
 #endif
 
 #if !ADB_HOST
