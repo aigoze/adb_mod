@@ -605,6 +605,7 @@ void handle_packet(apacket *p, atransport *t)
         if (t->online && p->msg.arg0 != 0 && p->msg.arg1 == 0) {
             char *name = (char*) p->data;
             name[p->msg.data_length > 0 ? p->msg.data_length - 1 : 0] = 0;
+            D("A_OPEN: name for service socket = %s\n", name);
             s = create_local_service_socket(name);
             if(s == 0) {
                 send_close(0, p->msg.arg0, t);
@@ -682,7 +683,7 @@ void handle_packet(apacket *p, atransport *t)
     case A_HALO: /*new protocol*/
         if (p->msg.arg0 != 0)
         {
-            printf("======>get A_HALO transported\n");
+            D("======>get A_HALO transported\n");
             apacket *p = get_apacket();
             p->msg.command = A_DEPT;
             p->msg.arg0 = 123;
@@ -693,7 +694,7 @@ void handle_packet(apacket *p, atransport *t)
     case A_DEPT:
         if (p->msg.arg0 != 0)
         {
-            printf("==>>>>get A_DEPT transported\n");
+            D("==>>>>get A_DEPT transported\n");
         }
 
     default:
