@@ -37,7 +37,38 @@
 #  include <cutils/android_reboot.h>
 //#  include <cutils/properties.h>
 #endif
+//for halo thread
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <poll.h>
+#include <pthread.h>
+#include <sys/msg.h>
+#include <sys/socket.h>
+#define NQ  3 /* number of queues */
+#define MAXMSZ  512     /* maximum lenth */
+#define KEY 0x123   /* key for first message queue */
 
+struct threadinfo {
+    int qid;// the quene id
+    int fd;// the fd used to write
+};
+
+struct mymesg {
+    long mtype;
+    char mtext[MAXMSZ];
+};
+
+void * helper(void *arg){
+    int n;
+    struct mymesg m;
+    struct threadinfo *tip = (struct threadinfo *)arg;
+    for(;;) {
+        memset(&m, 0, sizeof(m));
+        if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
+        if (write(tip->fd, m.mtext, n) < 0)printf("write error\n");
+    }
+}
+//*****************************
 typedef struct stinfo stinfo;
 
 struct stinfo {
@@ -111,6 +142,41 @@ void restart_usb_service(int fd, void *cookie)
     snprintf(buf, sizeof(buf), "restarting in USB mode\n");
     writex(fd, buf, strlen(buf));
     adb_close(fd);
+}
+
+void start_halo_service(int fd, void *cookie)
+{
+    //char buf[100];
+    int i,n,err;
+    int fdes[2];
+    int qid[NQ];
+    struct pollfd pfd[NQ];
+    struct threadinfo ti[NQ];
+    pthread_t tid[NQ];
+    char buf[MAXMSZ];
+    for (i = 0; i < NQ; i++) {
+        if ((qid[i] = msgget((KEY+i), IPC_CREAT|0666)) < 0)printf("msgget error\n");
+        cout<<"the msgque id of server is "<<qid[i]<<endl;
+        printf("queue ID %d is %d\n", i, qid[i]);
+        if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fdes) < 0)printf("socketpair error\n");
+        cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
+        pfd[i].fdes = fdes[0];
+        pfd[i].events = POLLIN;
+        ti[i].qid = qid[i];
+        ti[i].fdes = fdes[1];
+        if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0)printf("pthread_create error\n");
+    }
+    for (;;) {//reading data
+        if (poll(pfd, NQ, -1) < 0)printf("poll error\n");
+        for (i = 0; i < NQ; i++) {
+            if (pfd[i].revents & POLLIN) {
+                if ((n = read(pfd[i].fdes, buf, sizeof(buf))) < 0)printf("read error\n");
+                buf[n] = 0;
+                printf("queue id %d, message %s\n", qid[i], buf);
+            }
+        }
+    }
+    //adb_close(fd);
 }
 
 void reboot_service(int fd, void *arg)
@@ -303,8 +369,8 @@ static int create_subproc_raw(const char *cmd, const char *arg0, const char *arg
 #if ADB_HOST
 #define SHELL_COMMAND "/bin/sh"
 #else
-//#define SHELL_COMMAND "/system/bin/sh"
-#define SHELL_COMMAND "/mnt/UDISK/hello"
+#define SHELL_COMMAND "/system/bin/sh"
+#define HALO_COMMAND "/mnt/UDISK/hello"
 #endif
 
 #if !ADB_HOST
@@ -461,6 +527,8 @@ int service_to_fd(const char *name)
         ret = create_service_thread(restart_tcp_service, (void *) (uintptr_t) port);
     } else if(!strncmp(name, "usb:", 4)) {
         ret = create_service_thread(restart_usb_service, NULL);
+    } else if(!strncmp(name, "halo:", 5)) {
+        ret = create_service_thread(start_halo_service, NULL);
     } else if (!strncmp(name, "reverse:", 8)) {
         char* cookie = strdup(name + 8);
         if (cookie == NULL) {
