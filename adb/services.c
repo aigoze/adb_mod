@@ -156,21 +156,23 @@ void start_halo_service(int fd, void *cookie)
     char buf[MAXMSZ];
     for (i = 0; i < NQ; i++) {
         if ((qid[i] = msgget((KEY+i), IPC_CREAT|0666)) < 0)printf("msgget error\n");
-        cout<<"the msgque id of server is "<<qid[i]<<endl;
+        //cout<<"the msgque id of server is "<<qid[i]<<endl;
+        printf("the msgque id of server is %s\n", qid[i]);
         printf("queue ID %d is %d\n", i, qid[i]);
         if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fdes) < 0)printf("socketpair error\n");
-        cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
-        pfd[i].fdes = fdes[0];
+        //cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
+        printf("fdes[0] is: %s fdes[1] is: %s\n", fdes[0], fdes[1]);
+        pfd[i].fd = fdes[0];
         pfd[i].events = POLLIN;
         ti[i].qid = qid[i];
-        ti[i].fdes = fdes[1];
+        ti[i].fd = fdes[1];
         if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0)printf("pthread_create error\n");
     }
     for (;;) {//reading data
         if (poll(pfd, NQ, -1) < 0)printf("poll error\n");
         for (i = 0; i < NQ; i++) {
             if (pfd[i].revents & POLLIN) {
-                if ((n = read(pfd[i].fdes, buf, sizeof(buf))) < 0)printf("read error\n");
+                if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
                 buf[n] = 0;
                 printf("queue id %d, message %s\n", qid[i], buf);
             }
