@@ -147,42 +147,42 @@ void restart_usb_service(int fd, void *cookie)
 void start_halo_service(int fd, void *cookie)
 {
     //char buf[100];
-    int NQ = 3; //number of queues
-    int i,n,err;
-    int fdes[2];
-    int qid[NQ];
-    struct pollfd pfd[NQ];
-    struct threadinfo ti[NQ];
-    pthread_t tid[NQ];
-    char buf[MAXMSZ];
-    for (i = 0; i < NQ; i++) {
-        if ((qid[i] = msgget((KEY+i), IPC_CREAT|0666)) < 0)printf("msgget error\n");
-        //cout<<"the msgque id of server is "<<qid[i]<<endl;
-        printf("the msgque id of server is %s\n", qid[i]);
-        printf("queue ID %d is %d\n", i, qid[i]);
-        if (socketpair(AF_UNIX, SOCK_STREAM, 0, fdes) < 0){
-            printf("socketpair error %s\n", strerror(errno));
-        }
-        //cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
-        printf("fdes[0] is: %s fdes[1] is: %s\n", fdes[0], fdes[1]);
-        pfd[i].fd = fdes[0];
-        pfd[i].events = POLLIN;
-        ti[i].qid = qid[i];
-        ti[i].fd = fdes[1];
-        if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0){
-            printf("pthread_create error %s\n", strerror(errno));
-        }
-    }
-    for (;;) {//reading data
-        if (poll(pfd, NQ, -1) < 0)printf("poll error\n");
-        for (i = 0; i < NQ; i++) {
-            if (pfd[i].revents & POLLIN) {
-                if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
-                buf[n] = 0;
-                printf("queue id %d, message %s\n", qid[i], buf);
-            }
-        }
-    }
+    // int NQ = 3; //number of queues
+    // int i,n,err;
+    // int fdes[2];
+    // int qid[NQ];
+    // struct pollfd pfd[NQ];
+    // struct threadinfo ti[NQ];
+    // pthread_t tid[NQ];
+    // char buf[MAXMSZ];
+    // for (i = 0; i < NQ; i++) {
+    //     if ((qid[i] = msgget((KEY+i), IPC_CREAT|0666)) < 0)printf("msgget error\n");
+    //     //cout<<"the msgque id of server is "<<qid[i]<<endl;
+    //     printf("the msgque id of server is %s\n", qid[i]);
+    //     printf("queue ID %d is %d\n", i, qid[i]);
+    //     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fdes) < 0){
+    //         printf("socketpair error %s\n", strerror(errno));
+    //     }
+    //     //cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
+    //     printf("fdes[0] is: %s fdes[1] is: %s\n", fdes[0], fdes[1]);
+    //     pfd[i].fd = fdes[0];
+    //     pfd[i].events = POLLIN;
+    //     ti[i].qid = qid[i];
+    //     ti[i].fd = fdes[1];
+    //     if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0){
+    //         printf("pthread_create error %s\n", strerror(errno));
+    //     }
+    // }
+    // for (;;) {//reading data
+    //     if (poll(pfd, NQ, -1) < 0)printf("poll error\n");
+    //     for (i = 0; i < NQ; i++) {
+    //         if (pfd[i].revents & POLLIN) {
+    //             if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
+    //             buf[n] = 0;
+    //             printf("queue id %d, message %s\n", qid[i], buf);
+    //         }
+    //     }
+    // }
     adb_close(fd);
 }
 
