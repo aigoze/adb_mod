@@ -59,22 +59,26 @@ struct mymesg {
 };
 
 void * helper(void *arg){
-    int n;
-    printf("helper 11111\n");
-    struct mymesg m;
-    printf("helper 22222\n");
-    struct threadinfo *tip = (struct threadinfo *)arg;
-    printf("helper 333333\n");
-    for(;;) {
-        printf("helper 444444\n");
-        memset(&m, 0, sizeof(m));
-        printf("helper 555555\n");
-        if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
-        printf("helper 66666\n");
-        if (write(tip->fd, m.mtext, n) < 0)printf("write error\n");
-        printf("helper 77777\n");
+    // int n;
+    // printf("helper 11111\n");
+    // struct mymesg m;
+    // printf("helper 22222\n");
+    // struct threadinfo *tip = (struct threadinfo *)arg;
+    // printf("helper 333333\n");
+    // for(;;) {
+    //     printf("helper 444444\n");
+    //     memset(&m, 0, sizeof(m));
+    //     printf("helper 555555\n");
+    //     if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
+    //     printf("helper 66666\n");
+    //     if (write(tip->fd, m.mtext, n) < 0)printf("write error\n");
+    //     printf("helper 77777\n");
+    // }
+    // printf("helper 88888\n");
+    for (; ; )
+    {
+        sleep(1);
     }
-    printf("helper 88888\n");
 }
 //*****************************
 typedef struct stinfo stinfo;
