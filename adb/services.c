@@ -162,7 +162,7 @@ void start_halo_service(int fd, void *cookie)
         printf("the msgque id of server is %s\n", qid[i]);
         printf("queue ID %d is %d\n", i, qid[i]);
         ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fdes);
-        printf("socketpair ret = %d \n", ret]);
+        printf("socketpair ret = %d \n", ret);
         if ( ret < 0){
             printf("socketpair error %s\n", strerror(errno));
         }
