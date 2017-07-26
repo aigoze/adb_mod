@@ -60,13 +60,21 @@ struct mymesg {
 
 void * helper(void *arg){
     int n;
+    printf("helper 11111\n");
     struct mymesg m;
+    printf("helper 22222\n");
     struct threadinfo *tip = (struct threadinfo *)arg;
+    printf("helper 333333\n");
     for(;;) {
+        printf("helper 444444\n");
         memset(&m, 0, sizeof(m));
+        printf("helper 555555\n");
         if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
+        printf("helper 66666\n");
         if (write(tip->fd, m.mtext, n) < 0)printf("write error\n");
+        printf("helper 77777\n");
     }
+    printf("helper 88888\n");
 }
 //*****************************
 typedef struct stinfo stinfo;
@@ -176,31 +184,27 @@ void start_halo_service(int fd, void *cookie)
         printf("33333333\n");
         ti[i].fd = fdes[1];
         printf("44444444\n");
-        if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0){
-            printf("pthread_create error %s\n", strerror(errno));
+        if ((err = adb_thread_create(&tid[i], NULL, helper, &ti[i])) != 0){
+            printf("adb_thread_create error %s\n", strerror(errno));
         }
         printf("5555555555\n");
     }
-    // for (; ;)
-    // {
-    //     sleep(1);
-    // }
-    // for (;;) {//reading data
-    //     printf("66666666\n");
-    //     ret = poll(pfd, NQ, -1);
-    //     if ( ret < 0){
-    //         printf("poll error\n");
-    //     }
-    //     printf("777777777\n");
-    //     for (i = 0; i < NQ; i++) {
-    //         if (pfd[i].revents & POLLIN) {
-    //             if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
-    //             buf[n] = 0;
-    //             printf("queue id %d, message %s\n", qid[i], buf);
-    //         }
-    //     }
-    //     printf("8888888888\n");
-    // }
+    for (;;) {//reading data
+        printf("66666666\n");
+        ret = poll(pfd, NQ, -1);
+        if ( ret < 0){
+            printf("poll error\n");
+        }
+        printf("777777777\n");
+        for (i = 0; i < NQ; i++) {
+            if (pfd[i].revents & POLLIN) {
+                if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
+                buf[n] = 0;
+                printf("queue id %d, message %s\n", qid[i], buf);
+            }
+        }
+        printf("8888888888\n");
+    }
     printf("99999999999\n");
     adb_close(fd);
     printf("10101010101010101\n");
