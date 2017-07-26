@@ -181,22 +181,26 @@ void start_halo_service(int fd, void *cookie)
         }
         printf("5555555555\n");
     }
-    for (;;) {//reading data
-        printf("66666666\n");
-        ret = poll(pfd, NQ, -1);
-        if ( ret < 0){
-            printf("poll error\n");
-        }
-        printf("777777777\n");
-        for (i = 0; i < NQ; i++) {
-            if (pfd[i].revents & POLLIN) {
-                if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
-                buf[n] = 0;
-                printf("queue id %d, message %s\n", qid[i], buf);
-            }
-        }
-        printf("8888888888\n");
+    for (; ;)
+    {
+        sleep(1);
     }
+    // for (;;) {//reading data
+    //     printf("66666666\n");
+    //     ret = poll(pfd, NQ, -1);
+    //     if ( ret < 0){
+    //         printf("poll error\n");
+    //     }
+    //     printf("777777777\n");
+    //     for (i = 0; i < NQ; i++) {
+    //         if (pfd[i].revents & POLLIN) {
+    //             if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
+    //             buf[n] = 0;
+    //             printf("queue id %d, message %s\n", qid[i], buf);
+    //         }
+    //     }
+    //     printf("8888888888\n");
+    // }
     printf("99999999999\n");
     adb_close(fd);
     printf("10101010101010101\n");
