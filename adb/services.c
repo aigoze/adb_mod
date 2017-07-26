@@ -184,8 +184,8 @@ void start_halo_service(int fd, void *cookie)
         printf("33333333\n");
         ti[i].fd = fdes[1];
         printf("44444444\n");
-        if ((err = adb_thread_create(&tid[i], NULL, helper, &ti[i])) != 0){
-            printf("adb_thread_create error %s\n", strerror(errno));
+        if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0){
+            printf("pthread_create error %s\n", strerror(errno));
         }
         printf("5555555555\n");
     }
