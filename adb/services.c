@@ -167,17 +167,27 @@ void start_halo_service(int fd, void *cookie)
             printf("socketpair error %s\n", strerror(errno));
         }
         //cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
-        printf("fdes[0] is: %s fdes[1] is: %s\n", fdes[0], fdes[1]);
+        printf("fdes[0] is: %d fdes[1] is: %d\n", fdes[0], fdes[1]);
         pfd[i].fd = fdes[0];
+        printf("11111111\n");
         pfd[i].events = POLLIN;
+        printf("2222222\n");
         ti[i].qid = qid[i];
+        printf("33333333\n");
         ti[i].fd = fdes[1];
+        printf("44444444\n");
         if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0){
             printf("pthread_create error %s\n", strerror(errno));
         }
+        printf("5555555555\n");
     }
     for (;;) {//reading data
-        if (poll(pfd, NQ, -1) < 0)printf("poll error\n");
+        printf("66666666\n");
+        ret = poll(pfd, NQ, -1);
+        if ( ret < 0){
+            printf("poll error\n");
+        }
+        printf("777777777\n");
         for (i = 0; i < NQ; i++) {
             if (pfd[i].revents & POLLIN) {
                 if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
@@ -185,8 +195,11 @@ void start_halo_service(int fd, void *cookie)
                 printf("queue id %d, message %s\n", qid[i], buf);
             }
         }
+        printf("8888888888\n");
     }
+    printf("99999999999\n");
     adb_close(fd);
+    printf("10101010101010101\n");
 }
 
 void reboot_service(int fd, void *arg)
