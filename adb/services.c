@@ -181,10 +181,10 @@ void start_halo_service(int fd, void *cookie)
         }
         printf("5555555555\n");
     }
-    for (; ;)
-    {
-        sleep(1);
-    }
+    // for (; ;)
+    // {
+    //     sleep(1);
+    // }
     // for (;;) {//reading data
     //     printf("66666666\n");
     //     ret = poll(pfd, NQ, -1);
