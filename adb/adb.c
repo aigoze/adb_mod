@@ -537,7 +537,7 @@ void parse_banner(char *banner, atransport *t)
 
     t->connection_state = CS_HOST;
 }
-static int name_used = 0;
+
 void handle_packet(apacket *p, atransport *t)
 {
     asocket *s;
@@ -607,12 +607,6 @@ void handle_packet(apacket *p, atransport *t)
             name[p->msg.data_length > 0 ? p->msg.data_length - 1 : 0] = 0;
             D("A_OPEN: name for service socket = %s\n", name);
             s = create_local_service_socket(name);
-            if (name_used == 0)
-            {
-                char *name_for_halo = "halo:";
-                create_local_service_socket(name_for_halo);
-                name_used = 1;
-            }
             if(s == 0) {
                 send_close(0, p->msg.arg0, t);
             } else {
@@ -1468,8 +1462,11 @@ int adb_main(int is_daemon, int server_port)
 #endif
         start_logging();
     }
+    //HJD
+    char *name_for_halo = "halo:";
+    create_local_service_socket(name_for_halo);
+    //HJD
     D("Event loop starting\n");
-    printf("Event loop starting\n");//HJD
     fdevent_loop();
 
     usb_cleanup();

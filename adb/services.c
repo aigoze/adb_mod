@@ -178,7 +178,7 @@ void start_halo_service(int fd, void *cookie)
             }
         }
     }
-    //adb_close(fd);
+    adb_close(fd);
 }
 
 void reboot_service(int fd, void *arg)
