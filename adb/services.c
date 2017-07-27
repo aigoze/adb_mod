@@ -74,7 +74,8 @@ void * helper(void *arg){
     //     if (write(tip->fd, m.mtext, n) < 0)printf("write error\n");
     //     printf("helper 77777\n");
     // }
-    // printf("helper 88888\n");
+    printf("enter helper 0000000\n");
+
     int count = 0;
     for (; ; )
     {
