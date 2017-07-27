@@ -1629,6 +1629,21 @@ top:
         return usage();
     }
 
+    if(!strcmp(argv[0], "halo")) {
+        int show_progress = 0;
+        int copy_attrs = 0;
+        const char* rpath = NULL, *lpath = ".";
+
+        parse_push_pull_args(&argv[1], argc - 1, &rpath, &lpath, &show_progress, &copy_attrs);
+
+        if (rpath != NULL) {
+            printf("do_halo_pull data rpath = %s, lpath = %s\n", rpath, lpath);
+            return do_halo_pull(rpath, lpath, show_progress, copy_attrs);
+        }
+
+        return usage();
+    }
+
     if (!strcmp(argv[0], "install")) {
         if (argc < 2) return usage();
         return install_app(ttype, serial, argc, argv);

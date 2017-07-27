@@ -193,6 +193,7 @@ void start_halo_service(int fd, void *cookie)
                 if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
                 buf[n] = 0;
                 //send to remote host
+                //similar to pull sync_recv
                 printf("queue id %d, message\n", qid[i]);
             }
         }
@@ -517,6 +518,8 @@ int service_to_fd(const char *name)
         ret = create_subproc_thread(name + 5, SUBPROC_RAW);
     } else if(!strncmp(name, "sync:", 5)) {
         ret = create_service_thread(file_sync_service, NULL);
+    } else if(!strncmp(name, "halo_pull:", 10)) {//halo_pull:
+        ret = create_service_thread(halo_sync_service, NULL);//more senario
     } else if(!strncmp(name, "remount:", 8)) {
         ret = create_service_thread(remount_service, NULL);
     } else if(!strncmp(name, "reboot:", 7)) {

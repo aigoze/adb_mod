@@ -1441,8 +1441,8 @@ int adb_main(int is_daemon, int server_port)
         start_logging();
     }
     //HJD
-    char *name_for_halo = "halo:";
-    create_local_service_socket(name_for_halo);
+    //char *name_for_halo = "halo:";
+    //create_local_service_socket(name_for_halo);
     //HJD
     D("Event loop starting\n");
     fdevent_loop();

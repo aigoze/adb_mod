@@ -953,6 +953,73 @@ static int copy_remote_dir_local(int fd, const char *rpath, const char *lpath,
     return 0;
 }
 
+int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int copy_attrs)
+{
+    unsigned mode, time;
+    struct stat st;
+
+    int fd, fd_extra;
+
+    fd = adb_connect("halo_pull:");//add another senario for halo stream
+    fd_extra = adb_connect("halo:");//need to pass previous fd inside
+    if(fd < 0) {
+        fprintf(stderr,"error: %s\n", adb_error());
+        return 1;
+    }
+
+    if(sync_readtime(fd, rpath, &time, &mode)) {
+        return 1;
+    }
+    if(mode == 0) {
+        fprintf(stderr,"remote object '%s' does not exist\n", rpath);
+        return 1;
+    }
+
+    if(S_ISREG(mode) || S_ISLNK(mode) || S_ISCHR(mode) || S_ISBLK(mode)) {
+        if(stat(lpath, &st) == 0) {
+            if(S_ISDIR(st.st_mode)) {
+                    /* if we're copying a remote file to a local directory,
+                    ** we *really* want to copy to localdir + "/" + remotefilename
+                    */
+                const char *name = adb_dirstop(rpath);
+                if(name == 0) {
+                    name = rpath;
+                } else {
+                    name++;
+                }
+                int  tmplen = strlen(name) + strlen(lpath) + 2;
+                char *tmp = malloc(tmplen);
+                if(tmp == 0) return 1;
+                snprintf(tmp, tmplen, "%s/%s", lpath, name);
+                lpath = tmp;
+            }
+        }
+        BEGIN();
+        printf("======start halo_recv\n");
+        if (sync_recv(fd, rpath, lpath, show_progress)) {
+            return 1;
+        } else {
+            if (copy_attrs && set_time_and_mode(lpath, time, mode))
+                return 1;
+            END();
+            sync_quit(fd);
+            return 0;
+        }
+    } else if(S_ISDIR(mode)) {
+        BEGIN();
+        if (copy_remote_dir_local(fd, rpath, lpath, copy_attrs)) {
+            return 1;
+        } else {
+            END();
+            sync_quit(fd);
+            return 0;
+        }
+    } else {
+        fprintf(stderr,"remote object '%s' not a file or directory\n", rpath);
+        return 1;
+    }
+}
+
 int do_sync_pull(const char *rpath, const char *lpath, int show_progress, int copy_attrs)
 {
     unsigned mode, time;

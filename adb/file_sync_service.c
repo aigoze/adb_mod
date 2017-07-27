@@ -426,6 +426,63 @@ static int do_recv(int s, const char *path, char *buffer)
     return 0;
 }
 
+void halo_sync_service(int fd, void *cookie)
+{
+    syncmsg msg;
+    char name[1025];
+    unsigned namelen;
+
+    char *buffer = malloc(SYNC_DATA_MAX);
+    if(buffer == 0) goto fail;
+
+    for(;;) {
+        D("sync: waiting for command\n");
+
+        if(readx(fd, &msg.req, sizeof(msg.req))) {
+            fail_message(fd, "command read failure");
+            break;
+        }
+        namelen = ltohl(msg.req.namelen);
+        if(namelen > 1024) {
+            fail_message(fd, "invalid namelen");
+            break;
+        }
+        if(readx(fd, name, namelen)) {
+            fail_message(fd, "filename read failure");
+            break;
+        }
+        name[namelen] = 0;
+
+        msg.req.namelen = 0;
+        D("sync: '%s' '%s'\n", (char*) &msg.req, name);
+        //add more case
+        switch(msg.req.id) {
+        case ID_STAT:
+            if(do_stat(fd, name)) goto fail;
+            break;
+        case ID_LIST:
+            if(do_list(fd, name)) goto fail;
+            break;
+        case ID_SEND:
+            if(do_send(fd, name, buffer)) goto fail;
+            break;
+        case ID_RECV:
+            if(do_recv(fd, name, buffer)) goto fail;
+            break;
+        case ID_QUIT:
+            goto fail;
+        default:
+            fail_message(fd, "unknown command");
+            goto fail;
+        }
+    }
+
+fail:
+    if(buffer != 0) free(buffer);
+    D("sync: done\n");
+    adb_close(fd);
+}
+
 void file_sync_service(int fd, void *cookie)
 {
     syncmsg msg;
