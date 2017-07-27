@@ -162,6 +162,10 @@ void restart_usb_service(int fd, void *cookie)
 
 void start_halo_service(int fd, void *cookie)
 {
+    pthread_attr_t   attr;
+
+    pthread_attr_init (&attr);
+    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
     //char buf[100];
     int NQ = 3; //number of queues
     int i,n,err;
@@ -192,7 +196,7 @@ void start_halo_service(int fd, void *cookie)
         printf("33333333\n");
         ti[i].fd = fdes[1];
         printf("44444444\n");
-        if ((err = pthread_create(&tid[i], NULL, helper, &ti[i])) != 0){
+        if ((err = pthread_create(&tid[i], &attr, helper, &ti[i])) != 0){
             printf("pthread_create error %s\n", strerror(errno));
         }
         printf("5555555555\n");
