@@ -75,9 +75,12 @@ void * helper(void *arg){
     //     printf("helper 77777\n");
     // }
     // printf("helper 88888\n");
+    int count = 0;
     for (; ; )
     {
+        printf("helper loop %d \n", count);
         sleep(1);
+        count++;
     }
 }
 //*****************************
