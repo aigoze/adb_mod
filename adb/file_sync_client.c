@@ -456,6 +456,7 @@ int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
     msg.req.id = ID_RECV;
     msg.req.namelen = htoll(len);
     printf("====== sync_recv writex fd = %d, msg.req.id = %d lengthd = %d\n", fd, msg.req.id,  msg.req.namelen);
+    printf("====== rpath = %s\n", rpath);
     if(writex(fd, &msg.req, sizeof(msg.req)) ||
        writex(fd, rpath, len)) {
         return -1;
@@ -509,9 +510,8 @@ int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
         }
 
         total_bytes += len;
-
+        printf("total_bytes = %ld\n", total_bytes);
         if (show_progress) {
-            printf("total_bytes = %ld\n", total_bytes);
             print_transfer_progress(total_bytes, size);
         }
     }

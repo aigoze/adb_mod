@@ -1622,7 +1622,7 @@ top:
         parse_push_pull_args(&argv[1], argc - 1, &rpath, &lpath, &show_progress, &copy_attrs);
 
         if (rpath != NULL) {
-            printf("pulling data from remote\n");
+            printf("pulling data rpath = %s, lpath = %s\n", rpath, lpath);
             return do_sync_pull(rpath, lpath, show_progress, copy_attrs);
         }
 

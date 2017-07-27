@@ -387,7 +387,7 @@ static int do_recv(int s, const char *path, char *buffer)
 {
     syncmsg msg;
     int fd, r;
-
+    printf("======do_recv: path = %s\n", path);
     fd = adb_open(path, O_RDONLY | O_CLOEXEC);
     if(fd < 0) {
         if(fail_errno(s)) return -1;
@@ -397,6 +397,7 @@ static int do_recv(int s, const char *path, char *buffer)
     msg.data.id = ID_DATA;
     for(;;) {
         r = adb_read(fd, buffer, SYNC_DATA_MAX);
+        printf("reading from fd (path)= %d\n", fd);
         if(r <= 0) {
             if(r == 0) break;
             if(errno == EINTR) continue;
@@ -405,6 +406,7 @@ static int do_recv(int s, const char *path, char *buffer)
             return r;
         }
         msg.data.size = htoll(r);
+        printf("then sending to socket fd = %d\n", s);
         if(writex(s, &msg.data, sizeof(msg.data)) ||
            writex(s, buffer, r)) {
             adb_close(fd);
@@ -416,6 +418,7 @@ static int do_recv(int s, const char *path, char *buffer)
 
     msg.data.id = ID_DONE;
     msg.data.size = 0;
+    printf("send ID_DONE to socket fd = %d\n", s);
     if(writex(s, &msg.data, sizeof(msg.data))) {
         return -1;
     }
