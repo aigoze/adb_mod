@@ -59,31 +59,14 @@ struct mymesg {
 };
 
 void * helper(void *arg){
-    // int n;
-    // printf("helper 11111\n");
-    // struct mymesg m;
-    // printf("helper 22222\n");
-    // struct threadinfo *tip = (struct threadinfo *)arg;
-    // printf("helper 333333\n");
-    // for(;;) {
-    //     printf("helper 444444\n");
-    //     memset(&m, 0, sizeof(m));
-    //     printf("helper 555555\n");
-    //     if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
-    //     printf("helper 66666\n");
-    //     if (write(tip->fd, m.mtext, n) < 0)printf("write error\n");
-    //     printf("helper 77777\n");
-    // }
-    printf("enter helper 0000000\n");
-
-    int count = 0;
-    // for (; ; )
-    // {
-    //     printf("helper loop %d \n", count);
-    //     sleep(1);
-    //     count++;
-    // }
-    printf("helper 111111\n");
+    int n;
+    struct mymesg m;
+    struct threadinfo *tip = (struct threadinfo *)arg;
+    for(;;) {
+        memset(&m, 0, sizeof(m));
+        if ((n = msgrcv(tip->qid, &m, PACKAGE_MSG_SIZE, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
+        if (write(tip->fd, m.mtext, n) < 0)printf("write error %s\n", strerror(errno));
+    }
 }
 //*****************************
 typedef struct stinfo stinfo;
@@ -164,10 +147,9 @@ void restart_usb_service(int fd, void *cookie)
 void start_halo_service(int fd, void *cookie)
 {
     pthread_attr_t   attr;
-
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-    //char buf[100];
+
     int NQ = 2; //number of queues
     int i,n,err;
     int fdes[2];
@@ -177,55 +159,45 @@ void start_halo_service(int fd, void *cookie)
     pthread_t tid[NQ];
     char buf[MAXMSZ];
     int ret = -1;
+
     for (i = 0; i < NQ; i++) {
-        printf("start_halo_service 00000000\n");
         printf("KEY = %d i = %d\n", KEY, i);
         qid[i] = msgget((KEY+i), IPC_CREAT|0666);
         if (qid[i] < 0){
             printf("msgget error: %s\n", strerror(errno));
         }
-        //cout<<"the msgque id of server is "<<qid[i]<<endl;
         printf("the msgque id of server is %s\n", qid[i]);
         printf("queue ID %d is %d\n", i, qid[i]);
-        ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fdes);
+        ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fdes);//SOCK_STREAM for tcp, advantage for lossless
         printf("socketpair ret = %d \n", ret);
         if ( ret < 0){
             printf("socketpair error %s\n", strerror(errno));
         }
-        //cout<<"fdes[0] is: "<<fdes[0]<<"fdes[1] is: "<<fdes[1]<<endl;
+
         printf("fdes[0] is: %d fdes[1] is: %d\n", fdes[0], fdes[1]);
         pfd[i].fd = fdes[0];
-        printf("11111111\n");
         pfd[i].events = POLLIN;
-        printf("2222222\n");
         ti[i].qid = qid[i];
-        printf("33333333\n");
         ti[i].fd = fdes[1];
-        printf("44444444\n");
-        // if ((err = pthread_create(&tid[i], &attr, helper, &ti[i])) != 0){
-        //     printf("pthread_create error %s\n", strerror(errno));
-        // }
-        printf("5555555555\n");
+        if ((err = pthread_create(&tid[i], &attr, helper, &ti[i])) != 0){
+            printf("pthread_create error %s\n", strerror(errno));
+        }
     }
-    // for (;;) {//reading data
-    //     printf("66666666\n");
-    //     ret = poll(pfd, NQ, -1);
-    //     if ( ret < 0){
-    //         printf("poll error\n");
-    //     }
-    //     printf("777777777\n");
-    //     for (i = 0; i < NQ; i++) {
-    //         if (pfd[i].revents & POLLIN) {
-    //             if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
-    //             buf[n] = 0;
-    //             printf("queue id %d, message %s\n", qid[i], buf);
-    //         }
-    //     }
-    //     printf("8888888888\n");
-    // }
-    printf("99999999999\n");
+    for (;;) {//reading data
+        ret = poll(pfd, NQ, -1);
+        if ( ret < 0){
+            printf("poll error\n");
+        }
+        for (i = 0; i < NQ; i++) {
+            if (pfd[i].revents & POLLIN) {
+                if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
+                buf[n] = 0;
+                printf("queue id %d, message\n", qid[i]);
+            }
+        }
+    }
+    //same for all sub thread here
     adb_close(fd);
-    printf("10101010101010101\n");
 }
 
 void reboot_service(int fd, void *arg)
