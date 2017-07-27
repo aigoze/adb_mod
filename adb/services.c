@@ -178,6 +178,7 @@ void start_halo_service(int fd, void *cookie)
     char buf[MAXMSZ];
     int ret = -1;
     for (i = 0; i < NQ; i++) {
+        printf("start_halo_service 00000000\n");
         if ((qid[i] = msgget((KEY+i), IPC_CREAT|0666)) < 0)printf("msgget error\n");
         //cout<<"the msgque id of server is "<<qid[i]<<endl;
         printf("the msgque id of server is %s\n", qid[i]);
