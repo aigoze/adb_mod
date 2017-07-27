@@ -64,7 +64,7 @@ void * helper(void *arg){
     struct threadinfo *tip = (struct threadinfo *)arg;
     for(;;) {
         memset(&m, 0, sizeof(m));
-        if ((n = msgrcv(tip->qid, &m, PACKAGE_MSG_SIZE, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
+        if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
         if (write(tip->fd, m.mtext, n) < 0)printf("write error %s\n", strerror(errno));
     }
 }
