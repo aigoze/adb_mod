@@ -168,7 +168,7 @@ void start_halo_service(int fd, void *cookie)
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
     //char buf[100];
-    int NQ = 1; //number of queues
+    int NQ = 2; //number of queues
     int i,n,err;
     int fdes[2];
     int qid[NQ];
