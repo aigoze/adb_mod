@@ -77,12 +77,13 @@ void * helper(void *arg){
     printf("enter helper 0000000\n");
 
     int count = 0;
-    for (; ; )
-    {
-        printf("helper loop %d \n", count);
-        sleep(1);
-        count++;
-    }
+    // for (; ; )
+    // {
+    //     printf("helper loop %d \n", count);
+    //     sleep(1);
+    //     count++;
+    // }
+    printf("helper 111111\n");
 }
 //*****************************
 typedef struct stinfo stinfo;
