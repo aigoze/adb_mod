@@ -192,6 +192,7 @@ void start_halo_service(int fd, void *cookie)
             if (pfd[i].revents & POLLIN) {
                 if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
                 buf[n] = 0;
+                //send to remote host
                 printf("queue id %d, message\n", qid[i]);
             }
         }

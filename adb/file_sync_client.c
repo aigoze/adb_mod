@@ -455,6 +455,7 @@ int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
 
     msg.req.id = ID_RECV;
     msg.req.namelen = htoll(len);
+    printf("====== sync_recv writex fd = %d, msg.req.id = %d lengthd = %d\n", fd, msg.req.id,  msg.req.msglen);
     if(writex(fd, &msg.req, sizeof(msg.req)) ||
        writex(fd, rpath, len)) {
         return -1;
@@ -469,6 +470,7 @@ int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
         adb_unlink(lpath);
         mkdirs(lpath);
         lfd = adb_creat(lpath, 0644);
+        printf("lpath = %s, lfd = %d\n", lpath, lfd);
         if(lfd < 0) {
             fprintf(stderr,"cannot create '%s': %s\n", lpath, strerror(errno));
             return -1;
@@ -479,6 +481,7 @@ int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
     }
 
     for(;;) {
+        printf("======recving fd = %d, msg.data.size = %d, msg.data.id = %d\n", fd, msg.data.size, msg.data.id);
         if(readx(fd, &msg.data, sizeof(msg.data))) {
             return -1;
         }
@@ -508,6 +511,7 @@ int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
         total_bytes += len;
 
         if (show_progress) {
+            printf("total_bytes = %d\n", total_bytes);
             print_transfer_progress(total_bytes, size);
         }
     }
@@ -990,6 +994,7 @@ int do_sync_pull(const char *rpath, const char *lpath, int show_progress, int co
             }
         }
         BEGIN();
+        printf("======start sync_recv\n");
         if (sync_recv(fd, rpath, lpath, show_progress)) {
             return 1;
         } else {
