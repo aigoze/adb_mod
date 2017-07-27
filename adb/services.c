@@ -46,7 +46,7 @@
 #include <sys/socket.h>
 //#define NQ  3 /* number of queues */
 #define MAXMSZ  512     /* maximum lenth */
-#define KEY 0x123   /* key for first message queue */
+#define KEY 0x66   /* key for first message queue  origin 0x123*/
 
 struct threadinfo {
     int qid;// the quene id
