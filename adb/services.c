@@ -45,7 +45,7 @@
 #include <sys/msg.h>
 #include <sys/socket.h>
 //#define NQ  3 /* number of queues */
-#define MAXMSZ  512     /* maximum lenth */
+#define MAXMSZ  256     /* maximum lenth origin 512*/ 
 #define KEY 0x66   /* key for first message queue  origin 0x123*/
 
 struct threadinfo {
