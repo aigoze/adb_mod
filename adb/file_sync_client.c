@@ -1139,7 +1139,7 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
         p_sync_param.lpath = lpath;
         p_sync_param.show_progress = show_progress;
         printf("======creating halo_sync_recv thread\n");
-        err = pthread_create(&t_recv, &attr, (void*)halo_sync_recv, (void*)&p_sync_param)
+        err = pthread_create(&t_recv, &attr, (void*)halo_sync_recv, (void*)&p_sync_param);
         if ( err != 0){
              printf("pthread_create error %s\n", strerror(errno));
              return 1;
