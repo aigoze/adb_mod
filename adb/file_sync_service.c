@@ -436,7 +436,7 @@ void halo_sync_service(int fd, void *cookie)
     if(buffer == 0) goto fail;
 
     for(;;) {
-        D("sync: waiting for command\n");
+        D("halo_sync: waiting for command\n");
 
         if(readx(fd, &msg.req, sizeof(msg.req))) {
             fail_message(fd, "command read failure");
@@ -454,7 +454,7 @@ void halo_sync_service(int fd, void *cookie)
         name[namelen] = 0;
 
         msg.req.namelen = 0;
-        D("sync: '%s' '%s'\n", (char*) &msg.req, name);
+        D("halo_sync: '%s' '%s'\n", (char*) &msg.req, name);
         //add more case
         switch(msg.req.id) {
         case ID_STAT:
@@ -479,7 +479,7 @@ void halo_sync_service(int fd, void *cookie)
 
 fail:
     if(buffer != 0) free(buffer);
-    D("sync: done\n");
+    D("halo_sync: done\n");
     adb_close(fd);
 }
 

@@ -960,7 +960,7 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
 
     int fd, fd_extra;
 
-    fd = adb_connect("halo_pull:");//add another senario for halo stream
+    fd = adb_connect("halo_sync:");//add another senario for halo stream
     fd_extra = adb_connect("halo:");//need to pass previous fd inside
     if(fd < 0) {
         fprintf(stderr,"error: %s\n", adb_error());

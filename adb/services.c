@@ -518,7 +518,7 @@ int service_to_fd(const char *name)
         ret = create_subproc_thread(name + 5, SUBPROC_RAW);
     } else if(!strncmp(name, "sync:", 5)) {
         ret = create_service_thread(file_sync_service, NULL);
-    } else if(!strncmp(name, "halo_pull:", 10)) {//halo_pull:
+    } else if(!strncmp(name, "halo_sync:", 10)) {//halo_pull:
         ret = create_service_thread(halo_sync_service, NULL);//more senario
     } else if(!strncmp(name, "remount:", 8)) {
         ret = create_service_thread(remount_service, NULL);
