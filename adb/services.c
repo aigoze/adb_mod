@@ -37,37 +37,7 @@
 #  include <cutils/android_reboot.h>
 //#  include <cutils/properties.h>
 #endif
-//for halo thread
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <poll.h>
-#include <pthread.h>
-#include <sys/msg.h>
-#include <sys/socket.h>
-//#define NQ  3 /* number of queues */
-#define MAXMSZ  256     /* maximum lenth origin 512*/ 
-#define KEY 0x66   /* key for first message queue  origin 0x123*/
 
-struct threadinfo {
-    int qid;// the quene id
-    int fd;// the fd used to write
-};
-
-struct mymesg {
-    long mtype;
-    char mtext[MAXMSZ];
-};
-
-void * helper(void *arg){
-    int n;
-    struct mymesg m;
-    struct threadinfo *tip = (struct threadinfo *)arg;
-    for(;;) {
-        memset(&m, 0, sizeof(m));
-        if ((n = msgrcv(tip->qid, &m, MAXMSZ, 0, MSG_NOERROR)) < 0)printf("msgrcv error\n");
-        if (write(tip->fd, m.mtext, n) < 0)printf("write error %s\n", strerror(errno));
-    }
-}
 //*****************************
 typedef struct stinfo stinfo;
 
@@ -146,58 +116,58 @@ void restart_usb_service(int fd, void *cookie)
 
 void start_halo_service(int fd, void *cookie)
 {
-    pthread_attr_t   attr;
-    pthread_attr_init (&attr);
-    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+    // pthread_attr_t   attr;
+    // pthread_attr_init (&attr);
+    // pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
 
-    int NQ = 2; //number of queues
-    int i,n,err;
-    int fdes[2];
-    int qid[NQ];
-    struct pollfd pfd[NQ];
-    struct threadinfo ti[NQ];
-    pthread_t tid[NQ];
-    char buf[MAXMSZ];
-    int ret = -1;
+    // int NQ = 2; //number of queues
+    // int i,n,err;
+    // int fdes[2];
+    // int qid[NQ];
+    // struct pollfd pfd[NQ];
+    // struct threadinfo ti[NQ];
+    // pthread_t tid[NQ];
+    // char buf[MAXMSZ];
+    // int ret = -1;
 
-    for (i = 0; i < NQ; i++) {
-        printf("KEY = %d i = %d\n", KEY, i);
-        qid[i] = msgget((KEY+i), IPC_CREAT|0666);
-        if (qid[i] < 0){
-            printf("msgget error: %s\n", strerror(errno));
-        }
-        printf("the msgque id of server is %s\n", qid[i]);
-        printf("queue ID %d is %d\n", i, qid[i]);
-        ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fdes);//SOCK_STREAM for tcp, advantage for lossless
-        printf("socketpair ret = %d \n", ret);
-        if ( ret < 0){
-            printf("socketpair error %s\n", strerror(errno));
-        }
+    // for (i = 0; i < NQ; i++) {
+    //     printf("KEY = %d i = %d\n", KEY, i);
+    //     qid[i] = msgget((KEY+i), IPC_CREAT|0666);
+    //     if (qid[i] < 0){
+    //         printf("msgget error: %s\n", strerror(errno));
+    //     }
+    //     printf("the msgque id of server is %s\n", qid[i]);
+    //     printf("queue ID %d is %d\n", i, qid[i]);
+    //     ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fdes);//SOCK_STREAM for tcp, advantage for lossless
+    //     printf("socketpair ret = %d \n", ret);
+    //     if ( ret < 0){
+    //         printf("socketpair error %s\n", strerror(errno));
+    //     }
 
-        printf("fdes[0] is: %d fdes[1] is: %d\n", fdes[0], fdes[1]);
-        pfd[i].fd = fdes[0];
-        pfd[i].events = POLLIN;
-        ti[i].qid = qid[i];
-        ti[i].fd = fdes[1];
-        if ((err = pthread_create(&tid[i], &attr, helper, &ti[i])) != 0){
-            printf("pthread_create error %s\n", strerror(errno));
-        }
-    }
-    for (;;) {//reading data
-        ret = poll(pfd, NQ, -1);
-        if ( ret < 0){
-            printf("poll error\n");
-        }
-        for (i = 0; i < NQ; i++) {
-            if (pfd[i].revents & POLLIN) {
-                if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
-                buf[n] = 0;
-                //send to remote host
-                //similar to pull sync_recv
-                printf("queue id %d, message\n", qid[i]);
-            }
-        }
-    }
+    //     printf("fdes[0] is: %d fdes[1] is: %d\n", fdes[0], fdes[1]);
+    //     pfd[i].fd = fdes[0];
+    //     pfd[i].events = POLLIN;
+    //     ti[i].qid = qid[i];
+    //     ti[i].fd = fdes[1];
+    //     if ((err = pthread_create(&tid[i], &attr, helper, &ti[i])) != 0){
+    //         printf("pthread_create error %s\n", strerror(errno));
+    //     }
+    // }
+    // for (;;) {//reading data
+    //     ret = poll(pfd, NQ, -1);
+    //     if ( ret < 0){
+    //         printf("poll error\n");
+    //     }
+    //     for (i = 0; i < NQ; i++) {
+    //         if (pfd[i].revents & POLLIN) {
+    //             if ((n = read(pfd[i].fd, buf, sizeof(buf))) < 0)printf("read error\n");
+    //             buf[n] = 0;
+    //             //send to remote host
+    //             //similar to pull sync_recv
+    //             printf("queue id %d, message\n", qid[i]);
+    //         }
+    //     }
+    // }
     //same for all sub thread here
     adb_close(fd);
 }

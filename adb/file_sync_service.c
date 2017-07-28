@@ -33,6 +33,21 @@
 #include "adb.h"
 #include "file_sync_service.h"
 
+//for halo sync services
+#include <sys/uio.h>
+#include <poll.h>
+#include <pthread.h>
+#include <sys/msg.h>
+#include <sys/socket.h>
+
+#define MAXMSZ  256     /* maximum lenth origin 512*/ 
+#define KEY 0x66   /* key for first message queue  origin 0x123*/
+struct halo_que_msg {
+    long mtype;
+    char mtext[MAXMSZ];
+};
+//for halo sync services
+
 /* TODO: use fs_config to configure permissions on /data */
 static bool is_on_system(const char *name) {
     const char *SYSTEM = "/system/";
@@ -383,6 +398,57 @@ static int do_send(int s, char *path, char *buffer)
     return ret;
 }
 
+static int halo_do_recv(int s, int *id_queue, char *buffer)
+{
+    syncmsg msg;
+
+    struct halo_que_msg halo_msg;
+    int fd, r;
+    //printf("======halo_do_recv: path = %s\n", path);
+    //fd = adb_open(path, O_RDONLY | O_CLOEXEC);
+    fd = *id_queue;
+    if(fd < 0) {
+        if(fail_errno(s)) return -1;
+        return 0;
+    }
+
+    msg.data.id = ID_DATA;
+    for(;;) {
+        //r = adb_read(fd, buffer, SYNC_DATA_MAX);
+        printf("====halo_do_recv: memset the halo_msg to all 0\n");
+        memset(&halo_msg, 0, sizeof(halo_msg));
+        printf("====halo_do_recv: done memset, msgrcv data from queue\n");
+        r = msgrcv(fd, &halo_msg, MAXMSZ, 0, MSG_NOERROR)
+        printf("====halo_do_recv: msgrcv from fd (queue)= %d\n", fd);
+        if(r <= 0) {
+            //if(r == 0) break;
+            //if(errno == EINTR) continue;
+            r = fail_errno(s);
+            printf("====halo_do_recv: msgrcv error\n");
+            //adb_close(fd);
+            return r;
+        }
+        msg.data.size = htoll(r);
+        printf("====halo_do_recv: then sending to socket fd = %d\n", s);
+        if(writex(s, &msg.data, sizeof(msg.data)) ||
+           writex(s, halo_msg.mtext, r)) {
+            //adb_close(fd);
+            return -1;
+        }
+    }
+
+    //adb_close(fd);
+
+    msg.data.id = ID_DONE;
+    msg.data.size = 0;
+    printf("====halo_do_recv: send ID_DONE to socket fd = %d\n", s);
+    if(writex(s, &msg.data, sizeof(msg.data))) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int do_recv(int s, const char *path, char *buffer)
 {
     syncmsg msg;
@@ -451,9 +517,25 @@ void halo_sync_service(int fd, void *cookie)
             fail_message(fd, "filename read failure");
             break;
         }
-        name[namelen] = 0;
 
+        name[namelen] = 0;
         msg.req.namelen = 0;
+
+        D("halo_sync: creating msg queues\n");
+        int num_Q = 2;
+        int queue_id[num_Q];
+        int cnt = 0;
+
+        for (cnt = 0; cnt < num_Q; cnt++)
+        {
+            queue_id[cnt] = msgget((KEY+cnt), IPC_CREAT|0666);
+            if (queue_id[cnt] < 0){
+                printf("msgget error: %s\n", strerror(errno));
+            }
+            printf("the msgque id of server is %s\n", queue_id[cnt]);
+            printf("queue ID %d is %d\n", cnt, queue_id[cnt]);
+        }
+
         D("halo_sync: '%s' '%s'\n", (char*) &msg.req, name);
         //add more case
         switch(msg.req.id) {
@@ -467,7 +549,8 @@ void halo_sync_service(int fd, void *cookie)
             if(do_send(fd, name, buffer)) goto fail;
             break;
         case ID_RECV:
-            if(do_recv(fd, name, buffer)) goto fail;
+            //if(do_recv(fd, name, buffer)) goto fail;
+            if(halo_do_recv(fd, &queue_id[0], buffer)) goto fail;//halo_do_recv
             break;
         case ID_QUIT:
             goto fail;
