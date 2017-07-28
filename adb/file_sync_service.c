@@ -418,7 +418,7 @@ static int halo_do_recv(int s, int *id_queue, char *buffer)
         printf("====halo_do_recv: memset the halo_msg to all 0\n");
         memset(&halo_msg, 0, sizeof(halo_msg));
         printf("====halo_do_recv: done memset, msgrcv data from queue\n");
-        r = msgrcv(fd, &halo_msg, MAXMSZ, 0, MSG_NOERROR)
+        r = msgrcv(fd, &halo_msg, MAXMSZ, 0, MSG_NOERROR);
         printf("====halo_do_recv: msgrcv from fd (queue)= %d\n", fd);
         if(r <= 0) {
             //if(r == 0) break;
