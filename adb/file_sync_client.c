@@ -1156,7 +1156,7 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
             return 1;
         } else {
             END();
-            sync_quit(fd);
+            //sync_quit(fd);
             return 0;
         }
     } else {
