@@ -434,6 +434,7 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
     const char *rpath = s_param->rpath;
     const char *lpath = s_param->lpath;
     int show_progress = s_param->show_progress;
+    printf("====== halo_sync_recv: fd[%d], rpath[%s], lpath[%s], show_progress[%d]\n", fd, rpath, lpath, show_progress);
 
     syncmsg msg;
     int len;
@@ -1146,7 +1147,7 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
             if (copy_attrs && set_time_and_mode(lpath, time, mode))
                 return 1;
             END();
-            sync_quit(fd);
+            //sync_quit(fd);//not quitting for now
             return 0;
         }
     } else if(S_ISDIR(mode)) {
