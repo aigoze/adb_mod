@@ -421,6 +421,136 @@ static int mkdirs(const char *name)
     return 0;
 }
 
+typedef struct _sync_param{
+    int fd;
+    const char *rpath;
+    const char *lpath;
+    int show_progress;
+} sync_param;
+
+int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *lpath, int show_progress*/)
+{
+    int fd = s_param->fd;
+    const char *rpath = s_param->rpath;
+    const char *lpath = s_param->lpath;
+    int show_progress = s_param->show_progress;
+
+    syncmsg msg;
+    int len;
+    int lfd = -1;
+    char *buffer = send_buffer.data;
+    unsigned id;
+    unsigned long long size = 0;
+
+    len = strlen(rpath);
+    if(len > 1024) return -1;
+
+    if (show_progress) {
+        // Determine remote file size.
+        syncmsg stat_msg;
+        stat_msg.req.id = ID_STAT;
+        stat_msg.req.namelen = htoll(len);
+
+        if (writex(fd, &stat_msg.req, sizeof(stat_msg.req)) ||
+            writex(fd, rpath, len)) {
+            return -1;
+        }
+
+        if (readx(fd, &stat_msg.stat, sizeof(stat_msg.stat))) {
+            return -1;
+        }
+
+        if (stat_msg.stat.id != ID_STAT) return -1;
+
+        size = ltohl(stat_msg.stat.size);
+    }
+
+    msg.req.id = ID_RECV;
+    msg.req.namelen = htoll(len);
+    printf("====== sync_recv writex fd = %d, msg.req.id = %d lengthd = %d\n", fd, msg.req.id,  msg.req.namelen);
+    printf("====== rpath = %s\n", rpath);
+    if(writex(fd, &msg.req, sizeof(msg.req)) ||
+       writex(fd, rpath, len)) {
+        return -1;
+    }
+
+    if(readx(fd, &msg.data, sizeof(msg.data))) {
+        return -1;
+    }
+    id = msg.data.id;
+
+    if((id == ID_DATA) || (id == ID_DONE)) {
+        adb_unlink(lpath);
+        mkdirs(lpath);
+        lfd = adb_creat(lpath, 0644);
+        printf("lpath = %s, lfd = %d\n", lpath, lfd);
+        if(lfd < 0) {
+            fprintf(stderr,"cannot create '%s': %s\n", lpath, strerror(errno));
+            return -1;
+        }
+        goto handle_data;
+    } else {
+        goto remote_error;
+    }
+
+    for(;;) {
+        printf("======recving fd = %d, msg.data.size = %d, msg.data.id = %d\n", fd, msg.data.size, msg.data.id);
+        if(readx(fd, &msg.data, sizeof(msg.data))) {
+            return -1;
+        }
+        id = msg.data.id;
+
+    handle_data:
+        len = ltohl(msg.data.size);
+        if(id == ID_DONE) break;
+        if(id != ID_DATA) goto remote_error;
+        if(len > SYNC_DATA_MAX) {
+            fprintf(stderr,"data overrun\n");
+            adb_close(lfd);
+            return -1;
+        }
+
+        if(readx(fd, buffer, len)) {
+            adb_close(lfd);
+            return -1;
+        }
+
+        if(writex(lfd, buffer, len)) {
+            fprintf(stderr,"cannot write '%s': %s\n", rpath, strerror(errno));
+            adb_close(lfd);
+            return -1;
+        }
+
+        total_bytes += len;
+        printf("total_bytes = %ld\n", total_bytes);
+        if (show_progress) {
+            print_transfer_progress(total_bytes, size);
+        }
+    }
+
+    adb_close(lfd);
+    return 0;
+
+remote_error:
+    adb_close(lfd);
+    adb_unlink(lpath);
+
+    if(id == ID_FAIL) {
+        len = ltohl(msg.data.size);
+        if(len > 256) len = 256;
+        if(readx(fd, buffer, len)) {
+            return -1;
+        }
+        buffer[len] = 0;
+    } else {
+        memcpy(buffer, &id, 4);
+        buffer[4] = 0;
+//        strcpy(buffer,"unknown reason");
+    }
+    fprintf(stderr,"failed to copy '%s' to '%s': %s\n", rpath, lpath, buffer);
+    return 0;
+}
+
 int sync_recv(int fd, const char *rpath, const char *lpath, int show_progress)
 {
     syncmsg msg;
@@ -955,6 +1085,13 @@ static int copy_remote_dir_local(int fd, const char *rpath, const char *lpath,
 
 int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int copy_attrs)
 {
+    pthread_attr_t   attr;
+    pthread_attr_init (&attr);
+    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+    pthread_t t_recv;
+    sync_param p_sync_param;
+    int err;
+
     unsigned mode, time;
     struct stat st;
 
@@ -996,8 +1133,15 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
         }
         BEGIN();
         printf("======start halo_recv\n");
-        if (sync_recv(fd, rpath, lpath, show_progress)) {
-            return 1;
+        p_sync_param.fd = fd;
+        p_sync_param.rpath = rpath;
+        p_sync_param.lpath = lpath;
+        p_sync_param.show_progress = show_progress;
+        if ((err = pthread_create(&t_recv, &attr, (void*)halo_sync_recv, (void*)&p_sync_param) != 0){
+             printf("pthread_create error %s\n", strerror(errno));
+             return 1;
+        //if (halo_sync_recv(fd, rpath, lpath, show_progress)) {
+        //    return 1;
         } else {
             if (copy_attrs && set_time_and_mode(lpath, time, mode))
                 return 1;
