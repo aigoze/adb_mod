@@ -1146,11 +1146,11 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
         //if (halo_sync_recv(fd, rpath, lpath, show_progress)) {
         //    return 1;
         } else {
-            if (copy_attrs && set_time_and_mode(lpath, time, mode))
-                return 1;
+            //if (copy_attrs && set_time_and_mode(lpath, time, mode))
+            //    return 1;
             END();
             //sync_quit(fd);//not quitting for now
-            return 0;
+            //return 0;
         }
         printf("======creating halo_sync_recv done\n");
         for (; ;)
