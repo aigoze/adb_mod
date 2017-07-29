@@ -522,7 +522,7 @@ void halo_sync_service(int fd, void *cookie)
         msg.req.namelen = 0;
 
         D("halo_sync: creating msg queues\n");
-        int num_Q = 2;
+        int num_Q = 1;
         int queue_id[num_Q];
         int cnt = 0;
 
