@@ -521,20 +521,21 @@ void halo_sync_service(int fd, void *cookie)
         name[namelen] = 0;
         msg.req.namelen = 0;
 
-        D("halo_sync: creating msg queues\n");
-        int num_Q = 1;
-        int queue_id[num_Q];
+        D("halo_sync: creating msg queues in and out\n");
+        int msgque_in, msgque_out;
         int cnt = 0;
 
-        for (cnt = 0; cnt < num_Q; cnt++)
-        {
-            queue_id[cnt] = msgget((KEY+cnt), IPC_CREAT|0666);
-            if (queue_id[cnt] < 0){
-                printf("msgget error: %s\n", strerror(errno));
-            }
-            printf("the msgque id of server is %s\n", queue_id[cnt]);
-            printf("queue ID %d is %d\n", cnt, queue_id[cnt]);
+        msgque_in = msgget((KEY), IPC_CREAT|0666);
+        if (msgque_in < 0){
+            printf("msgque_in msgget error: %s\n", strerror(errno));
         }
+
+        msgque_out = msgget((KEY+1), IPC_CREAT|0666);
+        if (msgque_out < 0){
+            printf("msgque_out msgget error: %s\n", strerror(errno));
+        }
+
+        printf("the msgque_in ID = %d msgque_out ID = %d\n", msgque_in, msgque_out);
 
         D("halo_sync: '%s' '%s'\n", (char*) &msg.req, name);
         //add more case
@@ -550,7 +551,7 @@ void halo_sync_service(int fd, void *cookie)
             break;
         case ID_RECV:
             //if(do_recv(fd, name, buffer)) goto fail;
-            if(halo_do_recv(fd, &queue_id[0], buffer)) goto fail;//halo_do_recv
+            if(halo_do_recv(fd, &msgque_in, buffer)) goto fail;//halo_do_recv
             break;
         case ID_QUIT:
             goto fail;
