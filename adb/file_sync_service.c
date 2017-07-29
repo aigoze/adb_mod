@@ -39,13 +39,6 @@
 #include <pthread.h>
 #include <sys/msg.h>
 #include <sys/socket.h>
-
-#define MAXMSZ  256     /* maximum lenth origin 512*/ 
-#define KEY 0x66   /* key for first message queue  origin 0x123*/
-struct halo_que_msg {
-    long mtype;
-    char mtext[MAXMSZ];
-};
 //for halo sync services
 
 /* TODO: use fs_config to configure permissions on /data */

@@ -436,6 +436,15 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
     int show_progress = s_param->show_progress;
     printf("====== halo_sync_recv: fd[%d], rpath[%s], lpath[%s], show_progress[%d]\n", fd, rpath, lpath, show_progress);
 
+    struct halo_que_msg local_msg;
+    size_t nbytes;
+    int key_local = KEY_LOCAL;
+    int qid;
+    int msg_s_ret;
+    if ((qid = msgget(key_local, 0)) < 0){
+        printf("can't open queue key_local %x", key_local);
+    }
+
     syncmsg msg;
     int len;
     int lfd = -1;
@@ -520,6 +529,16 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
             fprintf(stderr,"cannot write '%s': %s\n", rpath, strerror(errno));
             adb_close(lfd);
             return -1;
+        }
+
+        //write msg to local show video
+        memset(&local_msg, 0, sizeof(local_msg));
+        memcpy(local_msg.mtext, buffer, len);
+        nbytes = MAXMSZ;
+        local_msg.mtype = 1;
+        msg_s_ret = msgsnd(qid, &local_msg, nbytes, 0);
+        if ( msg_s_ret < 0){
+            printf("can't send message msg_s_ret = %d errorno = %d [%s]\n", msg_s_ret, errno, strerror(errno));
         }
 
         total_bytes += len;
@@ -1153,11 +1172,11 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
             //return 0;
         }
         printf("======creating halo_sync_recv done\n");
-        // for (; ;)
-        // {
-        //     printf(".....\n");
-        //     sleep(1);
-        // }
+        for (; ;)
+        {
+            printf(".....\n");
+            sleep(1);
+        }
     } else if(S_ISDIR(mode)) {
         BEGIN();
         if (copy_remote_dir_local(fd, rpath, lpath, copy_attrs)) {
