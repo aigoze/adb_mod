@@ -53,7 +53,7 @@ int __android_log_print(int prio, const char *tag,  const char *fmt, ...)
     va_start(ap, fmt);
     vsnprintf(buf, LOG_BUF_SIZE, fmt, ap);
     va_end(ap);
-    printf("[HJDlog]:%s\n",buf);
+    //printf("[HJDlog]:%s\n",buf);
   return 0;
 };
 

@@ -408,11 +408,11 @@ static int halo_do_recv(int s, int *id_queue, char *buffer)
     msg.data.id = ID_DATA;
     for(;;) {
         //r = adb_read(fd, buffer, SYNC_DATA_MAX);
-        printf("====halo_do_recv: memset the halo_msg to all 0\n");
+        //printf("====halo_do_recv: memset the halo_msg to all 0\n");
         memset(&halo_msg, 0, sizeof(halo_msg));
-        printf("====halo_do_recv: done memset, msgrcv data from queue\n");
-        r = msgrcv(fd, &halo_msg, MAXMSZ, 0, MSG_NOERROR);
-        printf("====halo_do_recv: msgrcv from fd (queue)= %d\n", fd);
+        //printf("====halo_do_recv: done memset, msgrcv data from queue\n");
+        r = msgrcv(fd, &halo_msg, sizeof(halo_msg), 0, MSG_NOERROR);
+        printf("====Recving id = %d, size = %d\n", halo_msg.id, halo_msg.size);
         if(r <= 0) {
             //if(r == 0) break;
             //if(errno == EINTR) continue;
@@ -422,9 +422,9 @@ static int halo_do_recv(int s, int *id_queue, char *buffer)
             return r;
         }
         msg.data.size = htoll(r);
-        printf("====halo_do_recv: then sending to socket fd = %d\n", s);
+       // printf("====halo_do_recv: then sending to socket fd = %d\n", s);
         if(writex(s, &msg.data, sizeof(msg.data)) ||
-           writex(s, halo_msg.mtext, r)) {
+           writex(s, &halo_msg, r)) {
             //adb_close(fd);
             return -1;
         }
@@ -434,7 +434,7 @@ static int halo_do_recv(int s, int *id_queue, char *buffer)
 
     msg.data.id = ID_DONE;
     msg.data.size = 0;
-    printf("====halo_do_recv: send ID_DONE to socket fd = %d\n", s);
+    //printf("====halo_do_recv: send ID_DONE to socket fd = %d\n", s);
     if(writex(s, &msg.data, sizeof(msg.data))) {
         return -1;
     }

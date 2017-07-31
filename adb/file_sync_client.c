@@ -434,7 +434,7 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
     const char *rpath = s_param->rpath;
     const char *lpath = s_param->lpath;
     int show_progress = s_param->show_progress;
-    printf("====== halo_sync_recv: fd[%d], rpath[%s], lpath[%s], show_progress[%d]\n", fd, rpath, lpath, show_progress);
+    //printf("====== halo_sync_recv: fd[%d], rpath[%s], lpath[%s], show_progress[%d]\n", fd, rpath, lpath, show_progress);
 
     struct halo_que_msg local_msg;
     size_t nbytes;
@@ -477,8 +477,8 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
 
     msg.req.id = ID_RECV;
     msg.req.namelen = htoll(len);
-    printf("====== sync_recv writex fd = %d, msg.req.id = %d lengthd = %d\n", fd, msg.req.id,  msg.req.namelen);
-    printf("====== rpath = %s\n", rpath);
+    //printf("====== sync_recv writex fd = %d, msg.req.id = %d lengthd = %d\n", fd, msg.req.id,  msg.req.namelen);
+    //printf("====== rpath = %s\n", rpath);
     if(writex(fd, &msg.req, sizeof(msg.req)) ||
        writex(fd, rpath, len)) {
         return -1;
@@ -490,21 +490,21 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
     id = msg.data.id;
 
     if((id == ID_DATA) || (id == ID_DONE)) {
-        adb_unlink(lpath);
-        mkdirs(lpath);
-        lfd = adb_creat(lpath, 0644);
-        printf("lpath = %s, lfd = %d\n", lpath, lfd);
-        if(lfd < 0) {
-            fprintf(stderr,"cannot create '%s': %s\n", lpath, strerror(errno));
-            return -1;
-        }
+        //adb_unlink(lpath);
+        //mkdirs(lpath);
+        // lfd = adb_creat(lpath, 0644);
+        // printf("lpath = %s, lfd = %d\n", lpath, lfd);
+        // if(lfd < 0) {
+        //     fprintf(stderr,"cannot create '%s': %s\n", lpath, strerror(errno));
+        //     return -1;
+        // }
         goto handle_data;
     } else {
         goto remote_error;
     }
 
     for(;;) {
-        printf("======recving fd = %d, msg.data.size = %d, msg.data.id = %d\n", fd, msg.data.size, msg.data.id);
+        //printf("======recving fd = %d, msg.data.size = %d, msg.data.id = %d\n", fd, msg.data.size, msg.data.id);
         if(readx(fd, &msg.data, sizeof(msg.data))) {
             return -1;
         }
@@ -516,44 +516,43 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
         if(id != ID_DATA) goto remote_error;
         if(len > SYNC_DATA_MAX) {
             fprintf(stderr,"data overrun\n");
-            adb_close(lfd);
+            // adb_close(lfd);
             return -1;
         }
 
         if(readx(fd, buffer, len)) {
-            adb_close(lfd);
+            // adb_close(lfd);
             return -1;
         }
 
-        if(writex(lfd, buffer, len)) {
-            fprintf(stderr,"cannot write '%s': %s\n", rpath, strerror(errno));
-            adb_close(lfd);
-            return -1;
-        }
+        // if(writex(lfd, buffer, len)) {
+        //     fprintf(stderr,"cannot write '%s': %s\n", rpath, strerror(errno));
+        //     adb_close(lfd);
+        //     return -1;
+        // }
 
         //write msg to local show video
         memset(&local_msg, 0, sizeof(local_msg));
-        memcpy(local_msg.mtext, buffer, len);
-        nbytes = MAXMSZ;
-        local_msg.mtype = 1;
-        msg_s_ret = msgsnd(qid, &local_msg, nbytes, 0);
+        memcpy(&local_msg, buffer, len);
+        //local_msg.mtype = 1;
+        msg_s_ret = msgsnd(qid, &local_msg, sizeof(local_msg), 0);
         if ( msg_s_ret < 0){
             printf("can't send message msg_s_ret = %d errorno = %d [%s]\n", msg_s_ret, errno, strerror(errno));
         }
 
         total_bytes += len;
-        printf("total_bytes = %ld\n", total_bytes);
+        printf("======>total_bytes = %ld, len = %d, id = %d, size = %d\n", total_bytes, len, local_msg.id, local_msg.size);
         if (show_progress) {
             print_transfer_progress(total_bytes, size);
         }
     }
 
-    adb_close(lfd);
+    // adb_close(lfd);
     return 0;
 
 remote_error:
-    adb_close(lfd);
-    adb_unlink(lpath);
+    // adb_close(lfd);
+    //adb_unlink(lpath);
 
     if(id == ID_FAIL) {
         len = ltohl(msg.data.size);
@@ -1152,12 +1151,12 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
             }
         }
         BEGIN();
-        printf("======start halo_recv\n");
+        //printf("======start halo_recv\n");
         p_sync_param.fd = fd;
         p_sync_param.rpath = rpath;
         p_sync_param.lpath = lpath;
         p_sync_param.show_progress = show_progress;
-        printf("======creating halo_sync_recv thread\n");
+        //printf("======creating halo_sync_recv thread\n");
         err = pthread_create(&t_recv, &attr, (void*)halo_sync_recv, (void*)&p_sync_param);
         if ( err != 0){
              printf("pthread_create error %s\n", strerror(errno));
@@ -1171,7 +1170,7 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
             //sync_quit(fd);//not quitting for now
             //return 0;
         }
-        printf("======creating halo_sync_recv done\n");
+        //printf("======creating halo_sync_recv done\n");
         for (; ;)
         {
             printf(".....\n");

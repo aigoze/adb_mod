@@ -76,11 +76,14 @@ typedef union {
 } syncmsg;
 
 //for halo sync services
-#define MAXMSZ  256     /* maximum lenth origin 512*/ 
+#define MAXMSZ  512     /* maximum lenth origin 512*/ 
 #define KEY 0x66   /* key for first message queue  origin 0x123*/
 #define KEY_LOCAL 0x76
 struct halo_que_msg {
-    long mtype;
+    int mtype;
+    int id;
+    int size;
+    int total;
     char mtext[MAXMSZ];
 };
 //for halo sync services
