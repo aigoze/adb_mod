@@ -391,6 +391,36 @@ static int do_send(int s, char *path, char *buffer)
     return ret;
 }
 
+static bool halo_check_data(struct halo_que_msg* msg){
+    unsigned int count, sum;
+    char* x;
+
+    count = msg->size;
+    x = msg->mtext;
+    sum = 0;
+    while(count-- > 0){
+        sum += *(x++);
+    }
+    if(sum != msg->check){
+        return false;
+    }else{
+        return true;
+    }
+}
+
+static int halo_get_check_sum(struct halo_que_msg* msg){
+    unsigned int count, sum;
+    char* x;
+
+    count = msg->size;
+    x = msg->mtext;
+    sum = 0;
+    while(count-- > 0){
+        sum += *(x++);
+    }
+    return sum;
+}
+
 static int halo_do_recv(int s, int *id_queue, char *buffer)
 {
     syncmsg msg;
@@ -412,7 +442,10 @@ static int halo_do_recv(int s, int *id_queue, char *buffer)
         memset(&halo_msg, 0, sizeof(halo_msg));
         //printf("====halo_do_recv: done memset, msgrcv data from queue\n");
         r = msgrcv(fd, &halo_msg, sizeof(halo_msg), 0, MSG_NOERROR);
-        printf("====Recving id = %d, size = %d\n", halo_msg.id, halo_msg.size);
+        //printf("====Recving id = %d, size = %d, check = %d r = %d\n", halo_msg.id, halo_msg.size, halo_msg.check, r);
+        if (!halo_check_data(&halo_msg)){
+            printf("========server CHECK SUM ERROR!\n");
+        }
         if(r <= 0) {
             //if(r == 0) break;
             //if(errno == EINTR) continue;

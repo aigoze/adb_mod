@@ -421,6 +421,36 @@ static int mkdirs(const char *name)
     return 0;
 }
 
+static bool halo_check_data(struct halo_que_msg* msg){
+    unsigned int count, sum;
+    char* x;
+
+    count = msg->size;
+    x = msg->mtext;
+    sum = 0;
+    while(count-- > 0){
+        sum += *(x++);
+    }
+    if(sum != msg->check){
+        return false;
+    }else{
+        return true;
+    }
+}
+
+static int halo_get_check_sum(struct halo_que_msg* msg){
+    unsigned int count, sum;
+    char* x;
+
+    count = msg->size;
+    x = msg->mtext;
+    sum = 0;
+    while(count-- > 0){
+        sum += *(x++);
+    }
+    return sum;
+}
+
 typedef struct _sync_param{
     int fd;
     const char *rpath;
@@ -440,7 +470,7 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
     size_t nbytes;
     int key_local = KEY_LOCAL;
     int qid;
-    int msg_s_ret;
+    int mRetVal;
     if ((qid = msgget(key_local, 0)) < 0){
         printf("can't open queue key_local %x", key_local);
     }
@@ -535,13 +565,17 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
         memset(&local_msg, 0, sizeof(local_msg));
         memcpy(&local_msg, buffer, len);
         //local_msg.mtype = 1;
-        msg_s_ret = msgsnd(qid, &local_msg, sizeof(local_msg), 0);
-        if ( msg_s_ret < 0){
-            printf("can't send message msg_s_ret = %d errorno = %d [%s]\n", msg_s_ret, errno, strerror(errno));
+        //printf("======>len = %d, id = %d, size = %d, check = %d\n", len, local_msg.id, local_msg.size, local_msg.check);
+        // if (!halo_check_data(&local_msg)){
+        //     printf("======== client CHECK SUM ERROR!\n");
+        // }else{
+        mRetVal = msgsnd(qid, &local_msg, sizeof(local_msg), 0);
+        if ( mRetVal < 0){
+        printf("can't send message mRetVal = %d errorno = %d [%s]\n", mRetVal, errno, strerror(errno));
         }
-
         total_bytes += len;
-        printf("======>total_bytes = %ld, len = %d, id = %d, size = %d\n", total_bytes, len, local_msg.id, local_msg.size);
+        //}
+        //printf("======>total_bytes = %ld, len = %d, id = %d, size = %d\n", total_bytes, len, local_msg.id, local_msg.size);
         if (show_progress) {
             print_transfer_progress(total_bytes, size);
         }

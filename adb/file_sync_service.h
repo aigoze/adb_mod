@@ -84,6 +84,7 @@ struct halo_que_msg {
     int id;
     int size;
     int total;
+    int check;
     char mtext[MAXMSZ];
 };
 //for halo sync services
