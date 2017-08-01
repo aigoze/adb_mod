@@ -539,10 +539,10 @@ void halo_sync_service(int fd, void *cookie)
             fail_message(fd, "invalid namelen");
             break;
         }
-        if(readx(fd, name, namelen)) {
-            fail_message(fd, "filename read failure");
-            break;
-        }
+        // if(readx(fd, name, namelen)) {
+        //     fail_message(fd, "filename read failure");
+        //     break;
+        // }
 
         name[namelen] = 0;
         msg.req.namelen = 0;
@@ -567,7 +567,8 @@ void halo_sync_service(int fd, void *cookie)
         //add more case
         switch(msg.req.id) {
         case ID_STAT:
-            if(do_stat(fd, name)) goto fail;
+            //if(do_stat(fd, name)) goto fail;
+            printf("ID_STAT leave blank intentionaly\n");
             break;
         case ID_LIST:
             if(do_list(fd, name)) goto fail;

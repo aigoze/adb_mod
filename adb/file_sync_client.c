@@ -63,6 +63,16 @@ static void END()
             total_bytes, (t / 1000000LL), (t % 1000000LL) / 1000LL);
 }
 
+char* unixTime2Str(long long n)
+{
+    char strTime[100];
+    int bufLen = sizeof(strTime);
+    struct tm timeHMS = *localtime((time_t *)&n);
+    strftime(strTime, bufLen - 1, "%H:%M:%S", &timeHMS);
+    strTime[bufLen - 1] = '\0';
+    return strTime;
+}
+
 static const char* transfer_progress_format = "\rTransferring: %llu/%llu (%d%%)";
 
 static void print_transfer_progress(unsigned long long bytes_current,
@@ -485,32 +495,31 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
     len = strlen(rpath);
     if(len > 1024) return -1;
 
-    if (show_progress) {
+    if (show_progress) {//show_progress = 0
         // Determine remote file size.
-        syncmsg stat_msg;
-        stat_msg.req.id = ID_STAT;
-        stat_msg.req.namelen = htoll(len);
+        // syncmsg stat_msg;
+        // stat_msg.req.id = ID_STAT;
+        // stat_msg.req.namelen = htoll(len);
 
-        if (writex(fd, &stat_msg.req, sizeof(stat_msg.req)) ||
-            writex(fd, rpath, len)) {
-            return -1;
-        }
+        // if (writex(fd, &stat_msg.req, sizeof(stat_msg.req)) ||
+        //     writex(fd, rpath, len)) {
+        //     return -1;
+        // }
 
-        if (readx(fd, &stat_msg.stat, sizeof(stat_msg.stat))) {
-            return -1;
-        }
+        // if (readx(fd, &stat_msg.stat, sizeof(stat_msg.stat))) {
+        //     return -1;
+        // }
 
-        if (stat_msg.stat.id != ID_STAT) return -1;
+        // if (stat_msg.stat.id != ID_STAT) return -1;
 
-        size = ltohl(stat_msg.stat.size);
+        // size = ltohl(stat_msg.stat.size);
     }
 
     msg.req.id = ID_RECV;
     msg.req.namelen = htoll(len);
     //printf("====== sync_recv writex fd = %d, msg.req.id = %d lengthd = %d\n", fd, msg.req.id,  msg.req.namelen);
     //printf("====== rpath = %s\n", rpath);
-    if(writex(fd, &msg.req, sizeof(msg.req)) ||
-       writex(fd, rpath, len)) {
+    if(writex(fd, &msg.req, sizeof(msg.req))/* || writex(fd, rpath, len)*/) {
         return -1;
     }
 
@@ -573,12 +582,12 @@ int halo_sync_recv(sync_param *s_param/*int fd, const char *rpath, const char *l
         if ( mRetVal < 0){
         printf("can't send message mRetVal = %d errorno = %d [%s]\n", mRetVal, errno, strerror(errno));
         }
-        total_bytes += len;
+        //total_bytes += len;
         //}
         //printf("======>total_bytes = %ld, len = %d, id = %d, size = %d\n", total_bytes, len, local_msg.id, local_msg.size);
-        if (show_progress) {
-            print_transfer_progress(total_bytes, size);
-        }
+        // if (show_progress) {
+        //     print_transfer_progress(total_bytes, size);
+        // }
     }
 
     // adb_close(lfd);
@@ -1157,34 +1166,34 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
         return 1;
     }
 
-    if(sync_readtime(fd, rpath, &time, &mode)) {
-        return 1;
-    }
-    if(mode == 0) {
-        fprintf(stderr,"remote object '%s' does not exist\n", rpath);
-        return 1;
-    }
+    // if(sync_readtime(fd, rpath, &time, &mode)) {
+    //     return 1;
+    // }
+    // if(mode == 0) {
+    //     fprintf(stderr,"remote object '%s' does not exist\n", rpath);
+    //     return 1;
+    // }
 
-    if(S_ISREG(mode) || S_ISLNK(mode) || S_ISCHR(mode) || S_ISBLK(mode)) {
-        if(stat(lpath, &st) == 0) {
-            if(S_ISDIR(st.st_mode)) {
-                    /* if we're copying a remote file to a local directory,
-                    ** we *really* want to copy to localdir + "/" + remotefilename
-                    */
-                const char *name = adb_dirstop(rpath);
-                if(name == 0) {
-                    name = rpath;
-                } else {
-                    name++;
-                }
-                int  tmplen = strlen(name) + strlen(lpath) + 2;
-                char *tmp = malloc(tmplen);
-                if(tmp == 0) return 1;
-                snprintf(tmp, tmplen, "%s/%s", lpath, name);
-                lpath = tmp;
-            }
-        }
-        BEGIN();
+    //if(S_ISREG(mode) || S_ISLNK(mode) || S_ISCHR(mode) || S_ISBLK(mode)) {
+        // if(stat(lpath, &st) == 0) {
+        //     if(S_ISDIR(st.st_mode)) {
+        //             /* if we're copying a remote file to a local directory,
+        //             ** we *really* want to copy to localdir + "/" + remotefilename
+        //             */
+        //         const char *name = adb_dirstop(rpath);
+        //         if(name == 0) {
+        //             name = rpath;
+        //         } else {
+        //             name++;
+        //         }
+        //         int  tmplen = strlen(name) + strlen(lpath) + 2;
+        //         char *tmp = malloc(tmplen);
+        //         if(tmp == 0) return 1;
+        //         snprintf(tmp, tmplen, "%s/%s", lpath, name);
+        //         lpath = tmp;
+        //     }
+        // }
+        //BEGIN();
         //printf("======start halo_recv\n");
         p_sync_param.fd = fd;
         p_sync_param.rpath = rpath;
@@ -1197,32 +1206,35 @@ int do_halo_pull(const char *rpath, const char *lpath, int show_progress, int co
              return 1;
         //if (halo_sync_recv(fd, rpath, lpath, show_progress)) {
         //    return 1;
-        } else {
+        } //else {
             //if (copy_attrs && set_time_and_mode(lpath, time, mode))
             //    return 1;
-            END();
+            //END();
             //sync_quit(fd);//not quitting for now
             //return 0;
-        }
-        //printf("======creating halo_sync_recv done\n");
+        //}
+
+        //must keep the thread alive, otherwise the halo_sync_recv will quit
+        long long now_time;
         for (; ;)
         {
-            printf(".....\n");
+            now_time = NOW();
+            printf("t stamp: %s\n", unixTime2Str(now_time));
             sleep(1);
         }
-    } else if(S_ISDIR(mode)) {
-        BEGIN();
-        if (copy_remote_dir_local(fd, rpath, lpath, copy_attrs)) {
-            return 1;
-        } else {
-            END();
-            //sync_quit(fd);
-            return 0;
-        }
-    } else {
-        fprintf(stderr,"remote object '%s' not a file or directory\n", rpath);
-        return 1;
-    }
+    //} else if(S_ISDIR(mode)) {
+    //     BEGIN();
+    //     if (copy_remote_dir_local(fd, rpath, lpath, copy_attrs)) {
+    //         return 1;
+    //     } else {
+    //         END();
+    //         //sync_quit(fd);
+    //         return 0;
+    //     }
+    // } else {
+    //     fprintf(stderr,"remote object '%s' not a file or directory\n", rpath);
+    //     return 1;
+    // }
 }
 
 int do_sync_pull(const char *rpath, const char *lpath, int show_progress, int copy_attrs)
