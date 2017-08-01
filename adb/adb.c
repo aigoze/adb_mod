@@ -1277,6 +1277,7 @@ static void drop_capabilities_bounding_set_if_needed() {
 }
 
 static int should_drop_privileges() {
+    return 0;//HJD
 #ifndef ALLOW_ADBD_ROOT
     return 1;
 #else /* ALLOW_ADBD_ROOT */
