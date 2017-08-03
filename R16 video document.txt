@@ -1,0 +1,28 @@
+R16 video document
+1. Device character
+	1.1 structure
+
+				R16 Device 								Host PC
+		**********||**********					**********||***********
+		* sender  || device  *					* host	  || receiver *
+		* program || daemon  *	===========>	* service || program  *
+		* 		  || service *	<===========	* command ||		  *
+		* 		  ||		 *					* line	  ||		  *
+		**********||**********					**********||***********
+
+
+	1.2 character/role description
+		Based on Message Queue IPC mechanisim
+		1.2.1 sender program:
+			
+
+		1.2.2 receiver program:
+
+2. Code explanation
+	2.1 Marco defines explanation
+
+	2.2 data structure
+
+	2.3 sender side code.
+
+	2.4 receiver side code.
