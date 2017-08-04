@@ -14,15 +14,71 @@ R16 video document
 	1.2 character/role description
 		Based on Message Queue IPC mechanisim
 		1.2.1 sender program:
-			
+			Grabing and sending data or video frame to remote Host PC.
 
 		1.2.2 receiver program:
+			Recving video or data from device and do further process.
 
 2. Code explanation
 	2.1 Marco defines explanation
+		#define FRAME_SIZE 19200		//the actual size of valid frame data
+		#define PACKAGE_MSG_SIZE 384	//the size of each data package to be sending
+		#define RAW_FRM_SIZE 42496		//the real frame size of reading from stream
+		#define KEY 0x66				//the key for sending data from r16 to adb daemon
+		#define KEY_LOCAL 0x76			//the key for sending data from adb host to display
 
 	2.2 data structure
+		struct mymesg {
+    		int mtype;	//set to 1 for default value
+    		int id;		//the id of data package 
+    		int size;	//the size of data package
+    		int total;	//totoal number of package to be sent or received
+    		int check;	//the checksum value of data for package validation
+    		char mtext[PACKAGE_MSG_SIZE];	//the actual part of memory for storing data
+		};
 
-	2.3 sender side code.
+	2.3 code shared by both sender and receiver
+		//function:		halo_check_data
+		//description:	validating the data on package
+		//parameter: 	pointer to a structure of package
+		//return:		false for invalid data
+						true for correct data
+		bool halo_check_data(struct mymesg* msg){......}
 
-	2.4 receiver side code.
+		//function:		halo_get_check_sum
+		//description:	caculate the data on package
+		//parameter: 	pointer to a structure of package
+		//return:		check sum value of data package
+		int halo_get_check_sum(struct mymesg* msg){......}
+
+	2.4 sender side code.
+		......
+		int key = KEY;				//setting key for message queue
+    	int qid = msgget(key, IPC_CREAT|0666);	//getting file descripter for message queue
+    	......
+    	struct mymesg m;			//package data struct
+    	memset(&m, 0, sizeof(m));	//clearing the data inside
+    	memcpy(m.mtext, framebuffer + sizeOfSent, sizeOfPkgs);	//copy the video data to
+    															//package structure and
+    															//ready to send
+    	m.mtype = 1;				//seting to 1 for default value
+    	m.id = count;				//id of package
+    	m.size = sizeOfPkgs;		//size of package
+    	m.total = numOfPkgs;		//total number of packages
+    	m.check = halo_get_check_sum(&m);	//caculating the check sum value
+        int ret = msgsnd(qid, &m, sizeof(m), 0);	//sending data
+        ......
+
+	2.5 receiver side code.
+		......
+		int key = KEY
+		struct halo_que_msg halo_msg;
+		int msgque = msgget(key, IPC_CREAT|0666);
+		int retVal = msgrcv(msgque, &halo_msg, 
+							sizeof(halo_msg), 0, 
+							MSG_NOERROR); 				//recving data from sender
+		if (!halo_check_data(&halo_msg)) 
+			printf("CHECK SUM ERROR!\n");				//validate the checksum value
+		......
+
+
